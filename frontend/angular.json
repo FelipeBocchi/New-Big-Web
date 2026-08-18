@@ -7,7 +7,10 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "styles": [
+            "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+            "scss"
+          ] 
         }
       },
       "root": "",
