@@ -3,7 +3,9 @@ package com.new_big.web.controller.employee;
 import com.new_big.web.controller.employee.dto.EmployeeRequest;
 import com.new_big.web.controller.employee.dto.EmployeeResponse;
 import com.new_big.web.entity.Employee;
+import com.new_big.web.enums.EmployeeRole;
 import com.new_big.web.service.EmployeeService;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,15 +119,27 @@ public class EmployeeController {
 
     //  === FUNÇÕES FORA O CRUD BÁSICO ===
 
-//    public ResponseEntity<Boolean> verifyLogin(
-//            @RequestParam String username,
-//            @RequestParam String password
-//    ) {
-//        try {
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    //  = Função para filtar funcionário de uma determinada função e se estçao etivos
+    // GET LOCALHOST:8080/API/EMPLOYEE/FILTAR?role=caixa&active=true
+    @GetMapping("/filtar")
+    public ResponseEntity<List<EmployeeResponse>> findByRoleAndActive(
+            @RequestParam EmployeeRole employeeRole,
+            @RequestParam Boolean active
+            ) {
+
+        try {
+
+            List<EmployeeResponse> employeeList = this.service.findByRoleAndActive(employeeRole, active)
+                    .stream()
+                    .map(EmployeeResponse::de)
+                    .toList();
+
+            return new ResponseEntity<>(employeeList, HttpStatus.ACCEPTED);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+    }
 
 }

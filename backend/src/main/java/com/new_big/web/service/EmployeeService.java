@@ -1,8 +1,8 @@
 package com.new_big.web.service;
 
 import com.new_big.web.controller.employee.dto.EmployeeRequest;
-import com.new_big.web.controller.employee.dto.EmployeeResponse;
 import com.new_big.web.entity.Employee;
+import com.new_big.web.enums.EmployeeRole;
 import com.new_big.web.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -95,6 +95,13 @@ public class EmployeeService {
 
         Employee employee = this.findById(id);
         this.repository.delete(employee);
+
+    }
+
+
+    public List<Employee> findByRoleAndActive(EmployeeRole role, Boolean active) {
+
+        return this.repository.findByRoleAndActive(role, active);
 
     }
 
