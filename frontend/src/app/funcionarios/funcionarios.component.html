@@ -6,7 +6,8 @@
       <h1>Funcionários</h1>
     </div>
 
-    <button class="botao-novo">
+    <button class="botao-novo"
+    (click)="abrirModalCriar()">
       <span>+</span>
       Novo funcionário
     </button>
@@ -19,10 +20,16 @@
 
       <div class="pesquisa">
 
+        <input
+          type="text"
+          [(ngModel)]="busca"
+          placeholder="Pesquisar funcionário..."
+        />
+
       </div>
 
       <span class="contador">
-        4 funcionários
+        {{ funcionariosFiltrados.length }} funcionários
       </span>
 
     </div>
@@ -46,31 +53,37 @@
 
         <tbody>
 
+             @for (
+            funcionario of funcionariosFiltrados;
+            track funcionario.id
+          ) {
+
           <tr>
 
             <td>
               <div class="funcionario">
 
                 <div class="avatar">
-                  J
+                  {{ funcionario.nome.charAt(0) }}
                 </div>
 
                 <div>
-                  <strong>João</strong>
-                  <small>ID 01</small>
+                  <strong>{{ funcionario.nome }}</strong>
+                  <small>ID {{ funcionario.id }}</small>
                 </div>
 
               </div>
             </td>
 
-            <td>******</td>
+            <td>{{ funcionario.cargo }}</td>
 
-            <td>(45) 99999-9999</td>
+            <td>{{ funcionario.telefone }}</td>
 
             <td>
-              <span class="status ativo">
-                <span></span>
-                Ativo
+              <span class="status ativo"
+              [class.inativo]="funcionario.status === 'Inativo'">
+                <span class="bolinha"></span>
+                {{ funcionario.status }}
               </span>
             </td>
 
@@ -78,12 +91,16 @@
 
               <div class="acoes">
 
-                <button class="botao-editar">
-                  ✎
+                <button class="botao-editar"
+                (click)="abrirModalEditar(funcionario)"
+                    title="Editar">
+                  <i class="fas fa-pen"></i>
                 </button>
 
-                <button class="botao-excluir">
-                  🗑
+                <button class="botao-excluir"
+                (click)="abrirModalExcluir(funcionario)"
+                    title="Excluir">
+                  <i class="far fa-trash-can"></i>
                 </button>
 
               </div>
@@ -92,148 +109,25 @@
 
           </tr>
 
+        }
+
+        @if (funcionariosFiltrados.length === 0) {
 
           <tr>
 
-            <td>
-              <div class="funcionario">
+            <td
+            colspan="6"
+                class="sem-resultados">
 
-                <div class="avatar">
-                  M
-                </div>
-
-                <div>
-                  <strong>Maria</strong>
-                  <small>ID 02</small>
-                </div>
-
-              </div>
+                Nenhum funcionário encontrado.
+              
             </td>
 
-            <td>******</td>
+            </tr>
 
-            <td>(45) 99999-9999</td>
+        }
 
-            <td>
-              <span class="status ativo">
-                <span></span>
-                Ativo
-              </span>
-            </td>
-
-            <td>
-
-              <div class="acoes">
-
-                <button class="botao-editar">
-                  ✎
-                </button>
-
-                <button class="botao-excluir">
-                  🗑
-                </button>
-
-              </div>
-
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              <div class="funcionario">
-
-                <div class="avatar">
-                  C
-                </div>
-
-                <div>
-                  <strong>Carlos</strong>
-                  <small>ID 03</small>
-                </div>
-
-              </div>
-            </td>
-
-            <td>******</td>
-
-            <td>(45) 99999-9999</td>
-
-            <td>
-              <span class="status ativo">
-                <span></span>
-                Ativo
-              </span>
-            </td>
-
-            <td>
-
-              <div class="acoes">
-
-                <button class="botao-editar">
-                  ✎
-                </button>
-
-                <button class="botao-excluir">
-                  🗑
-                </button>
-
-              </div>
-
-            </td>
-
-          </tr>
-
-
-          <tr>
-
-            <td>
-              <div class="funcionario">
-
-                <div class="avatar">
-                  A
-                </div>
-
-                <div>
-                  <strong>Ana</strong>
-                  <small>ID 04</small>
-                </div>
-
-              </div>
-            </td>
-
-            <td>******</td>
-
-            <td>(45) 99999-9999</td>
-
-            <td>
-              <span class="status inativo">
-                <span></span>
-                Inativo
-              </span>
-            </td>
-
-            <td>
-
-              <div class="acoes">
-
-                <button class="botao-editar">
-                  ✎
-                </button>
-
-                <button class="botao-excluir">
-                  🗑
-                </button>
-
-              </div>
-
-            </td>
-
-          </tr>
-
-        </tbody>
+         </tbody>
 
       </table>
 
@@ -242,3 +136,216 @@
   </section>
 
 </div>
+
+@if (modalAberto) {
+
+  <div
+    class="fundo-modal"
+    (click)="fecharModal()">
+
+
+    <div
+      class="modal"
+      (click)="$event.stopPropagation()">
+
+      @if (
+        modoModal === 'criar' ||
+        modoModal === 'editar'
+      ) {
+
+        <div class="modal-cabecalho">
+
+          <div>
+
+            <span class="subtitulo">
+              FUNCIONÁRIO
+            </span>
+
+            <h2>
+
+              @if (modoModal === 'criar') {
+                Novo funcionário
+              } @else {
+                Editar funcionário
+              }
+
+            </h2>
+
+          </div>
+
+
+          <button
+            class="botao-fechar"
+            (click)="fecharModal()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <div class="campos">
+
+
+          <div class="campo campo-completo">
+
+            <label>
+              Nome completo
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="novoFuncionario.nome"
+              placeholder="Digite o nome"
+            />
+
+          </div>
+
+
+
+          <div class="campo">
+
+            <label>
+              Cargo
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="novoFuncionario.cargo"
+              placeholder="Digite o cargo"
+            />
+
+          </div>
+
+
+
+          <div class="campo">
+
+            <label>
+              Telefone
+            </label>
+
+            <input
+              type="text"
+              [(ngModel)]="novoFuncionario.telefone"
+              placeholder="(00) 00000-0000"
+            />
+
+          </div>
+
+
+          <div class="campo">
+
+            <label>
+              Status
+            </label>
+
+            <select
+              [(ngModel)]="novoFuncionario.status">
+
+              <option value="Ativo">
+                Ativo
+              </option>
+
+              <option value="Inativo">
+                Inativo
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="modal-acoes">
+
+          <button
+            class="botao-cancelar"
+            (click)="fecharModal()">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            class="botao-salvar"
+            (click)="salvar()">
+
+            @if (modoModal === 'criar') {
+              Cadastrar funcionário
+            } @else {
+              Salvar alterações
+            }
+
+          </button>
+
+        </div>
+
+      }
+
+
+      @if (modoModal === 'excluir') {
+
+        <div class="modal-excluir">
+
+          <div class="icone-excluir">
+            !
+          </div>
+
+
+          <h2>
+            Excluir funcionário?
+          </h2>
+
+
+          <p>
+
+            Tem certeza que deseja excluir
+
+            <strong>
+              {{ funcionarioSelecionado?.nome }}
+            </strong>
+
+            ?
+
+            <br>
+
+            Essa ação não poderá ser desfeita.
+
+          </p>
+
+
+          <div class="modal-acoes">
+
+            <button
+              class="botao-cancelar"
+              (click)="fecharModal()">
+
+              Cancelar
+
+            </button>
+
+
+            <button
+              class="botao-confirmar-exclusao"
+              (click)="confirmarExclusao()">
+
+              Excluir funcionário
+
+            </button>
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}
