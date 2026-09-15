@@ -1,1 +1,54 @@
 /* You can add global styles to this file, and also import other style files */
+@import '@fortawesome/fontawesome-free/css/all.css';
+@import 'mdb-angular-ui-kit/assets/scss/mdb.scss';
+
+
+/* 1. Importando a fonte Poppins do Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* 2. Definindo as variáveis globais no :root */
+:root {
+  /* Cores Principais */
+  --primary-color: #FBC3BC;
+  --secondary-color: #996A71; 
+  --background-color: #FEFEFE;
+  --text-color: #0F0F0F;
+  --border-color: #FFE3E0;
+  
+  /* Gradiente (Combinei sua cor com a primária para criar um efeito legal) */
+  --gradient-color: linear-gradient(135deg, var(--primary-color) 0%, #F7ABAD 80%);
+
+  /* Tipografia */
+  --font-family-primary: 'Poppins', sans-serif;
+
+  /* Sistema de Tamanhos baseados em 4px (Para margens, paddings, etc) */
+  --size-1: 4px;
+  --size-2: 8px;
+  --size-3: 12px;
+  --size-4: 16px;
+  --size-5: 20px;
+  --size-6: 24px;
+  --size-7: 28px;
+  --size-8: 32px;
+
+  /* Border Radius (Aproveitando a escala de 4px) */
+  --radius-sm: var(--size-1);  /* 4px - cantos levemente arredondados */
+  --radius-md: var(--size-2);  /* 8px - padrão para botões e inputs */
+  --radius-lg: var(--size-3);  /* 12px - padrão para cards */
+  --radius-xl: var(--size-4);  /* 16px - elementos maiores */
+  --radius-full: 9999px;       /* Para botões totalmente redondos tipo pílula */
+}
+
+/* 3. Aplicando os padrões básicos no body */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-family-primary);
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
