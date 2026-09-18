@@ -52,3 +52,9 @@ html, body {
 *, *::before, *::after {
   box-sizing: inherit;
 }
+
+
+.border_of_box{
+    border: 1px solid var(--border-color);
+   
+}
