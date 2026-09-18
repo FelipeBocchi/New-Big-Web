@@ -1,0 +1,125 @@
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+
+  background-color: var(--primary-color);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 28px 18px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  overflow: hidden;
+
+  z-index: 1000;
+
+  /*
+   * Fundo decorativo
+   */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='100' viewBox='0 0 70 100'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.45'%3E%3Cpath d='M22 20 L35 42 L48 20 Z' fill='%23ffffff' stroke='none'/%3E%3Ccircle cx='35' cy='17' r='6' fill='none'/%3E%3Ccircle cx='27' cy='20' r='5' fill='none'/%3E%3Ccircle cx='43' cy='20' r='5' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+
+  background-repeat: repeat;
+
+  background-size: 60px 90px;
+
+  /*
+   * Mantém o conteúdo acima do desenho
+   */
+  isolation: isolate;
+}
+
+
+/* =========================
+   LOGO
+========================= */
+
+.sidebar_logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  margin-bottom: 28px;
+
+  position: relative;
+  z-index: 2;
+
+  img {
+    width: 100px;
+    max-width: 100%;
+    height: auto;
+
+    object-fit: contain;
+  }
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+.sidebar__menu {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: var(--size-3);
+
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================
+   ITEM
+========================= */
+
+.sidebar__item {
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 8px;
+
+  text-decoration: none;
+
+  background-color: rgb(from var(--secondary-color) r g b / 0.8);
+
+  border-radius: var(--radius-lg);
+
+  color: #ffffff;
+
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  font-weight: 500;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  cursor: pointer;
+
+  span {
+    text-align: center;
+  }
+
+  &:hover {
+    background-color: var(--secondary-color);
+
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background-color: var(--secondary-color);
+  }
+}
