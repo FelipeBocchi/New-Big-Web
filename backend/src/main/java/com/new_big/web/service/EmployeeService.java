@@ -1,73 +1,60 @@
 package com.new_big.web.service;
 
+import com.new_big.web.controller.customer.dto.CustomerRequest;
 import com.new_big.web.controller.employee.dto.EmployeeRequest;
+import com.new_big.web.entity.Customer;
 import com.new_big.web.entity.Employee;
 import com.new_big.web.enums.EmployeeRole;
 import com.new_big.web.repository.EmployeeRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmployeeService {
 
-    @Autowired
-    private EmployeeRepository repository;
+    private final EmployeeRepository repository;
 
-    public Employee save(EmployeeRequest employeeRequest) {
+    @Transactional
+    public Employee save(EmployeeRequest request) {
+
+        if (repository.existsByCpf(request.getCpf())) throw new RuntimeException("CPF já cadastrado");
+        if (repository.existsByEmail(request.getEmail())) throw new RuntimeException("E-mail já cadastrado");
 
         Employee employee = new Employee();
-
-        employee.setName(employeeRequest.getName());
-        employee.setCpf(employeeRequest.getCpf());
-        employee.setPhone(employeeRequest.getPhone());
-        employee.setEmail(employeeRequest.getEmail());
-        employee.setUsername(employeeRequest.getUsername());
-        employee.setPassword(employeeRequest.getPassword());
-        employee.setActive(employeeRequest.getActive());
-        employee.setAdmin(employeeRequest.getAdmin());
-        employee.setBirthDate(employeeRequest.getBirthDate());
-        employee.setRole(employeeRequest.getRole());
-
-        return this.repository.save(employee);
-
+        updateFields(employee, request);
+        //employee.setCreatedAt(LocalDateTime.now());
+        return repository.save(employee);
     }
 
     public Employee findById( Long id) {
 
-        return this.repository.findById(id).
-                orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                "Funcionário não foi encontrado com o id" + id)
-                );
-
+        return repository.findById(id).orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
     }
 
 
-    public List<Employee> list() {
+    public List<Employee> findAll() {
         return this.repository.findAll();
     }
 
 
-    public Employee update(EmployeeRequest employeeRequest, Long id) {
+    public Employee update(EmployeeRequest request, Long id) {
 
-        Employee employee = this.findById(id);
+        Employee employee = findById(id);
+        if (!employee.getCpf().equals(request.getCpf()) && repository.existsByCpf(request.getCpf()))
+            throw new RuntimeException("CPF já pertence a outro funcionário");
 
-        employee.setName(employeeRequest.getName());
-        employee.setCpf(employeeRequest.getCpf());
-        employee.setPhone(employeeRequest.getPhone());
-        employee.setEmail(employeeRequest.getEmail());
-        employee.setUsername(employeeRequest.getUsername());
-        employee.setPassword(employeeRequest.getPassword());
-        employee.setActive(employeeRequest.getActive());
-        employee.setAdmin(employeeRequest.getAdmin());
-        employee.setBirthDate(employeeRequest.getBirthDate());
-        employee.setRole(employeeRequest.getRole());
-
-        return this.repository.save(employee);
+        updateFields(employee, request);
+        return repository.save(employee);
 
     }
 
@@ -90,12 +77,23 @@ public class EmployeeService {
 
     }
 
+    @Transactional
+    public void inactivate(Long id) {
+        Employee employee = findById(id);
+        employee.setActive(false);
+        repository.save(employee);
+    }
 
-    public void delete(Long id) {
-
-        Employee employee = this.findById(id);
-        this.repository.delete(employee);
-
+    private void updateFields(Employee employee, EmployeeRequest request) {
+        employee.setName(request.getName());
+        employee.setCpf(request.getCpf());
+        employee.setPhone(request.getPhone());
+        employee.setEmail(request.getEmail());
+        employee.setPassword(request.getPassword()); // Lembrete: Encriptar com BCrypt no futuro
+        employee.setActive(request.getActive());
+        employee.setRole(request.getRole());
+        employee.setAdmin(request.getAdmin());
+        //employee.setBirthDate(request.getBirthDate().atStartOfDay());
     }
 
 
