@@ -12,6 +12,10 @@ import java.util.List;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
+    boolean existsByCpf(String cpf);
+
+    boolean existsByEmail(String email);
+
     @Query("SELECT e FROM Employee e WHERE e.role =: role AND e.active =: active")
     List<Employee> findByRoleAndActive(
             @Param("role")EmployeeRole role,

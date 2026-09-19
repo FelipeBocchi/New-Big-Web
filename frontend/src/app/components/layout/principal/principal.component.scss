@@ -1,0 +1,19 @@
+:host {
+  display: block; // hosts de componente Angular são "inline" por padrão
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  flex-shrink: 0; // impede que o menu encolha
+  width: 240px;   // largura fixa do menu
+  height: 100vh;
+  margin-right: var(--size-5);
+}
+
+.app-content {
+  overflow-y: auto;
+  padding: 1.5rem;
+}

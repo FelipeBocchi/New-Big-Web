@@ -1,11 +1,14 @@
 package com.new_big.web.controller.employee;
 
+import com.new_big.web.controller.customer.dto.CustomerResponse;
 import com.new_big.web.controller.employee.dto.EmployeeRequest;
 import com.new_big.web.controller.employee.dto.EmployeeResponse;
 import com.new_big.web.entity.Employee;
 import com.new_big.web.enums.EmployeeRole;
 import com.new_big.web.service.EmployeeService;
+import jakarta.validation.Valid;
 import jakarta.websocket.server.PathParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +19,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/employee")
+@RequiredArgsConstructor
 public class EmployeeController {
 
-    @Autowired
-    private EmployeeService service;
+    private final EmployeeService service;
 
     // POST LOCALHOST:8080/API/EMPLOYEE
     @PostMapping()
-    public ResponseEntity<EmployeeResponse> save( @RequestBody EmployeeRequest employeeRequest) {
+    public ResponseEntity<EmployeeResponse> save(@Valid @RequestBody EmployeeRequest employeeRequest) {
 
         try {
 
@@ -57,25 +60,16 @@ public class EmployeeController {
     @GetMapping()
     public ResponseEntity<List<EmployeeResponse>> findAll() {
 
-        try {
-
-            List<EmployeeResponse> employee = this.service.list()
-                    .stream()
-                    .map(EmployeeResponse::de)
-                    .toList();
-
-            return new ResponseEntity<>( employee, HttpStatus.ACCEPTED);
-
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
+        List<EmployeeResponse> responses = service.findAll().stream()
+                .map(EmployeeResponse::de)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     // PUT LOCALHOST:8080/API/EMPLOYEE/6
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeResponse> update( @PathVariable Long id,
-                                                    @RequestBody EmployeeRequest employeeRequest
+                                                    @Valid @RequestBody EmployeeRequest employeeRequest
     ) {
         try {
 
@@ -91,7 +85,7 @@ public class EmployeeController {
     // PATCH LOCALHOST:8080/API/EMPLOYEE/7
     @PatchMapping("/{id}")
     public ResponseEntity<EmployeeResponse> updatePartial( @PathVariable Long id,
-                                                           @RequestBody EmployeeRequest employeeRequest
+                                                           @Valid @RequestBody EmployeeRequest employeeRequest
     ) {
         try {
 
@@ -105,16 +99,12 @@ public class EmployeeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete( @PathVariable Long id) {
-
         try {
-
-            this.service.delete(id);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-
+            service.inactivate(id);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
-
     }
 
     //  === FUNÇÕES FORA O CRUD BÁSICO ===
