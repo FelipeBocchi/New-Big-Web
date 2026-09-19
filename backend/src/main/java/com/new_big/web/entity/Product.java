@@ -1,5 +1,6 @@
 package com.new_big.web.entity;
 
+import com.new_big.web.controller.product.dto.ProductRequestDTO;
 import com.new_big.web.enums.ProductType;
 import com.new_big.web.enums.UnitType;
 import jakarta.persistence.*;
@@ -43,5 +44,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductType productType;
 
-
+    public Product(ProductRequestDTO data){
+        this.salePrice = data.salePrice();
+        this.name = data.name();
+    }
 }
