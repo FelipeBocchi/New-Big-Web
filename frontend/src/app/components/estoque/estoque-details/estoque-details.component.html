@@ -1,1 +1,127 @@
-<p>estoque-details works!</p>
+<div
+  class="modal-overlay"
+  *ngIf="modalAberto"
+  (click)="fecharModal()"
+>
+
+  <div
+    class="estoque-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- =========================
+         CABEÇALHO
+    ========================== -->
+
+    <div class="modal-header">
+
+      <h2>
+        {{ modoEdicao ? 'Editar Produto' : 'Novo Produto' }}
+      </h2>
+
+      <button
+        class="btn-fechar"
+        (click)="fecharModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         CORPO
+    ========================== -->
+
+    <div class="modal-body">
+
+      <!-- NOME -->
+
+      <div class="campo">
+
+        <label>Produto</label>
+
+        <input
+          type="text"
+          [(ngModel)]="produto.nome"
+          placeholder="Digite o nome do produto"
+        >
+
+      </div>
+
+
+      <!-- CATEGORIA -->
+
+      <div class="campo">
+
+        <label>Categoria</label>
+
+        <input
+          type="text"
+          [(ngModel)]="produto.categoria"
+          placeholder="Digite a categoria"
+        >
+
+      </div>
+
+
+      <!-- QUANTIDADE -->
+
+      <div class="campo">
+
+        <label>Quantidade</label>
+
+        <input
+          type="number"
+          [(ngModel)]="produto.quantidade"
+          placeholder="Digite a quantidade"
+          min="0"
+        >
+
+      </div>
+
+
+      <!-- VALOR -->
+
+      <div class="campo">
+
+        <label>Valor</label>
+
+        <input
+          type="number"
+          [(ngModel)]="produto.valor"
+          placeholder="Digite o valor"
+          min="0"
+          step="0.01"
+        >
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         RODAPÉ
+    ========================== -->
+
+    <div class="modal-footer">
+
+      <button
+        class="btn-cancelar"
+        (click)="fecharModal()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="btn-salvar"
+        (click)="salvar()"
+      >
+        Salvar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

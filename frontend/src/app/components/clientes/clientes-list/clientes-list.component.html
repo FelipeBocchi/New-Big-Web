@@ -1,1 +1,157 @@
-<p>clientes-list works!</p>
+<div class="clientes-container">
+
+  <div class="cabecalho">
+    <h1>Clientes</h1>
+
+    <div class="acoes-topo">
+
+      <div class="campo-busca">
+        <input
+          type="text"
+          placeholder="Buscar Cliente..."
+          [(ngModel)]="termoBusca"
+        />
+
+        <span class="icone-busca"><i class="fas fa-magnifying-glass"></i></span>
+      </div>
+
+      <button class="btn-novo" (click)="novoCliente()">
+        <span>+</span>
+        Novo Cliente
+      </button>
+
+    </div>
+  </div>
+
+
+  <div class="tabela-container">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>E-mail</th>
+          <th>Telefone</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let cliente of clientesFiltrados">
+
+          <td>
+            <div class="cliente-info">
+
+              <div class="avatar">
+                {{ cliente.nome.charAt(0) }}
+              </div>
+
+              <div class="nome-container">
+
+                <span class="nome">
+                  {{ cliente.nome }}
+                </span>
+
+                <span class="id">
+                  ID {{ cliente.id }}
+                </span>
+
+              </div>
+
+            </div>
+          </td>
+
+          <td>
+            {{ cliente.email }}
+          </td>
+
+          <td>
+            {{ cliente.telefone }}
+          </td>
+
+          <td>
+
+            <span
+              class="status"
+              [class.ativo]="cliente.status === 'Ativo'"
+              [class.inativo]="cliente.status === 'Inativo'"
+            >
+              <i class="fas fa-circle"></i> {{ cliente.status }}
+            </span>
+
+          </td>
+
+          <td>
+
+            <div class="acoes">
+
+              <button
+                class="btn-status"
+                [class.ativo]="cliente.status === 'Ativo'"
+                [class.inativo]="cliente.status === 'Inativo'"
+                (click)="alterarStatus(cliente)"
+                [title]="cliente.status === 'Ativo'
+                  ? 'Desativar cliente'
+                  : 'Ativar cliente'"
+              >
+                <i class="fas fa-circle"></i>
+              </button>
+
+              <button
+                class="btn-editar"
+                (click)="editarCliente(cliente)"
+                title="Editar"
+              >
+                <i class="fas fa-pen"></i>
+              </button>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <div class="paginacao">
+
+    <button class="pagina seta">
+      ‹
+    </button>
+
+    <button class="pagina ativa">
+      1
+    </button>
+
+    <button class="pagina">
+      2
+    </button>
+
+    <button class="pagina">
+      3
+    </button>
+
+    <button class="pagina seta">
+      ›
+    </button>
+
+  </div>
+
+</div>
+
+<!-- Modal de cliente -->
+<app-clientes-details
+  [modalAberto]="modalAberto"
+  [modoEdicao]="modoEdicao"
+  [cliente]="clienteSelecionado"
+  (fechar)="fecharModal()"
+  (salvarCliente)="salvarCliente($event)">
+</app-clientes-details>

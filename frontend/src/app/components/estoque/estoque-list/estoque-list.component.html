@@ -1,1 +1,161 @@
-<p>estoque-list works!</p>
+<div class="estoque-container">
+
+  <div class="cabecalho">
+    <h1>Estoque</h1>
+
+    <div class="acoes-topo">
+
+      <div class="campo-busca">
+        <input
+          type="text"
+          placeholder="Buscar Produto..."
+          [(ngModel)]="termoBusca"
+        />
+
+        <span class="icone-busca"><i class="fas fa-magnifying-glass"></i></span>
+      </div>
+
+      <button class="btn-novo" (click)="novoProduto()">
+        <span>+</span>
+        Novo Produto
+      </button>
+
+    </div>
+  </div>
+
+
+  <div class="tabela-container">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Categoria</th>
+          <th>Quantidade</th>
+          <th>Valor</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let produto of produtosFiltrados">
+
+          <td>
+            <div class="produto-info">
+
+              <div class="avatar">
+                {{ produto.nome.charAt(0) }}
+              </div>
+
+              <div class="nome-container">
+
+                <span class="nome">
+                  {{ produto.nome }}
+                </span>
+
+                <span class="id">
+                  ID {{ produto.id }}
+                </span>
+
+              </div>
+
+            </div>
+          </td>
+
+          <td>
+            {{ produto.categoria }}
+          </td>
+
+          <td>
+            {{ produto.quantidade }}
+          </td>
+
+          <td>
+            {{ produto.valor | currency:'BRL':'symbol':'1.2-2' }}
+          </td>
+
+          <td>
+
+            <span
+              class="status"
+              [class.ativo]="produto.status === 'Ativo'"
+              [class.inativo]="produto.status === 'Inativo'"
+            >
+              <i class="fas fa-circle"></i> {{ produto.status }}
+            </span>
+
+          </td>
+
+          <td>
+
+            <div class="acoes">
+
+              <button
+                class="btn-status"
+                [class.ativo]="produto.status === 'Ativo'"
+                [class.inativo]="produto.status === 'Inativo'"
+                (click)="alterarStatus(produto)"
+                [title]="produto.status === 'Ativo'
+                  ? 'Desativar produto'
+                  : 'Ativar produto'"
+              >
+                <i class="fas fa-circle"></i>
+              </button>
+
+              <button
+                class="btn-editar"
+                (click)="editarProduto(produto)"
+                title="Editar"
+              >
+                <i class="fas fa-pen"></i>
+              </button>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <div class="paginacao">
+
+    <button class="pagina seta">
+      ‹
+    </button>
+
+    <button class="pagina ativa">
+      1
+    </button>
+
+    <button class="pagina">
+      2
+    </button>
+
+    <button class="pagina">
+      3
+    </button>
+
+    <button class="pagina seta">
+      ›
+    </button>
+
+  </div>
+
+</div>
+
+<app-estoque-details
+  [modalAberto]="modalAberto"
+  [modoEdicao]="modoEdicao"
+  [produto]="produtoSelecionado"
+  (fechar)="fecharModal()"
+  (salvarProduto)="salvarProduto($event)">
+</app-estoque-details>

@@ -3,16 +3,15 @@
   *ngIf="modalAberto"
   (click)="fecharModal()"
 >
-
   <div
-    class="funcionarios-modal"
+    class="cliente-modal"
     (click)="$event.stopPropagation()"
   >
 
     <div class="modal-header">
 
       <h2>
-        {{ modoEdicao ? 'Editar Funcionário' : 'Novo Funcionário' }}
+        {{ modoEdicao ? 'Editar Cliente' : 'Novo Cliente' }}
       </h2>
 
       <button
@@ -24,49 +23,39 @@
 
     </div>
 
-
     <div class="modal-body">
 
       <div class="campo">
-
         <label>Nome</label>
 
         <input
           type="text"
-          [(ngModel)]="funcionario.nome"
+          [(ngModel)]="cliente.nome"
           placeholder="Digite o nome"
         >
-
       </div>
 
+      <div class="campo">
+        <label>E-mail</label>
+
+        <input
+          type="email"
+          [(ngModel)]="cliente.email"
+          placeholder="Digite o e-mail"
+        >
+      </div>
 
       <div class="campo">
-
         <label>Telefone</label>
 
         <input
           type="text"
-          [(ngModel)]="funcionario.telefone"
+          [(ngModel)]="cliente.telefone"
           placeholder="Digite o telefone"
         >
-
-      </div>
-
-
-      <div class="campo">
-
-        <label>Cargo</label>
-
-        <input
-          type="text"
-          [(ngModel)]="funcionario.cargo"
-          placeholder="Digite o cargo"
-        >
-
       </div>
 
     </div>
-
 
     <div class="modal-footer">
 
@@ -87,5 +76,4 @@
     </div>
 
   </div>
-
 </div>

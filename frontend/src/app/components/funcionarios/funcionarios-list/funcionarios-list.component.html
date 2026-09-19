@@ -1,1 +1,148 @@
-<p>funcionarios-list works!</p>
+<div class="funcionarios-container">
+
+  <div class="cabecalho">
+    <h1>Funcionários</h1>
+
+    <div class="acoes-topo">
+      <div class="campo-busca">
+        <input
+          type="text"
+          placeholder="Buscar Funcionário..."
+          [(ngModel)]="termoBusca"
+        />
+
+        <span class="icone-busca"><i class="fas fa-magnifying-glass"></i></span>
+      </div>
+
+      <button class="btn-novo" (click)="novoFuncionario()">
+        <span>+</span>
+        Novo Funcionário
+      </button>
+    </div>
+  </div>
+
+
+  <div class="tabela-container">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Funcionário</th>
+          <th>Cargo</th>
+          <th>Telefone</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let funcionario of funcionariosFiltrados">
+
+          <td>
+            <div class="funcionario-info">
+
+              <div class="avatar">
+                {{ funcionario.nome.charAt(0) }}
+              </div>
+
+              <div class="nome-container">
+                <span class="nome">
+                  {{ funcionario.nome }}
+                </span>
+
+                <span class="id">
+                  ID {{ funcionario.id }}
+                </span>
+              </div>
+
+            </div>
+          </td>
+
+          <td>
+            {{ funcionario.cargo }}
+          </td>
+
+          <td>
+            {{ funcionario.telefone }}
+          </td>
+
+          <td>
+            <span
+              class="status"
+              [class.ativo]="funcionario.status === 'Ativo'"
+              [class.inativo]="funcionario.status === 'Inativo'"
+            >
+              <i class="fas fa-circle"></i> {{ funcionario.status }}
+            </span>
+          </td>
+
+          <td>
+            <div class="acoes">
+
+              <button
+              class="btn-status"
+              [class.ativo]="funcionario.status === 'Ativo'"
+               [class.inativo]="funcionario.status === 'Inativo'"
+              (click)="alterarStatus(funcionario)"
+              [title]="funcionario.status === 'Ativo'
+                ? 'Desativar funcionário'
+                : 'Ativar funcionário'"
+                >
+                <i class="fas fa-circle"></i>
+                 </button>
+
+                 <button
+                 class="btn-editar"
+                 (click)="editarFuncionario(funcionario)"
+                  title="Editar"
+                 >
+                    <i class="fas fa-pen"></i>
+                </button>
+
+            </div>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <div class="paginacao">
+
+    <button class="pagina seta">
+      ‹
+    </button>
+
+    <button class="pagina ativa">
+      1
+    </button>
+
+    <button class="pagina">
+      2
+    </button>
+
+    <button class="pagina">
+      3
+    </button>
+
+    <button class="pagina seta">
+      ›
+    </button>
+
+  </div>
+
+</div>
+
+<app-funcionarios-details
+  [modalAberto]="modalAberto"
+  [modoEdicao]="modoEdicao"
+  [funcionario]="funcionarioSelecionado"
+  (fechar)="fecharModal()"
+  (salvarFuncionario)="salvarFuncionario($event)">
+</app-funcionarios-details>

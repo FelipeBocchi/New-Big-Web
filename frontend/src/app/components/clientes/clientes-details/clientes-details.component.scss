@@ -31,7 +31,7 @@
    MODAL
 ========================= */
 
-.estoque-modal {
+.cliente-modal {
   width: 500px;
   max-width: 100%;
 
@@ -100,7 +100,7 @@
 
 
 /* =========================
-   FECHAR
+   BOTÃO FECHAR
 ========================= */
 
 .btn-fechar {
@@ -171,8 +171,7 @@
   color: var(--secondary-color);
 }
 
-.campo input,
-.campo select {
+.campo input {
   width: 100%;
   height: 40px;
 
@@ -195,19 +194,19 @@
   outline: none;
 
   transition: 0.2s;
+
+  box-shadow: 0 1px 5px rgba(153, 106, 113, 0.08);
 }
 
 .campo input::placeholder {
   color: #c8c8c8;
 }
 
-.campo input:hover,
-.campo select:hover {
+.campo input:hover {
   border-color: var(--primary-color);
 }
 
-.campo input:focus,
-.campo select:focus {
+.campo input:focus {
   border-color: var(--primary-color);
 
   box-shadow:
@@ -312,7 +311,7 @@
     padding: 15px;
   }
 
-  .estoque-modal {
+  .cliente-modal {
     width: 100%;
   }
 
