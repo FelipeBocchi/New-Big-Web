@@ -1,0 +1,381 @@
+.funcionarios-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 45px 50px;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+
+/* =========================
+   CABEÇALHO
+========================= */
+
+.cabecalho {
+  margin-bottom: 18px;
+
+  h1 {
+    margin: 0 0 18px 0;
+
+    font-size: 25px;
+    font-weight: 700;
+    color: #171717;
+  }
+}
+
+.acoes-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+
+/* =========================
+   BUSCA
+========================= */
+
+.campo-busca {
+  width: 350px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid #ffd0d0;
+  border-radius: 20px;
+
+  box-shadow: 0 1px 6px rgba(255, 120, 120, 0.18);
+
+  overflow: hidden;
+
+  input {
+    width: 100%;
+    height: 100%;
+
+    padding: 0 15px;
+
+    border: none;
+    outline: none;
+
+    font-size: 13px;
+    color: #555;
+
+    &::placeholder {
+      color: #c8c8c8;
+    }
+  }
+}
+
+.icone-busca {
+  margin-right: 15px;
+
+  font-size: 25px;
+  font-weight: bold;
+
+  color: #111;
+}
+
+
+/* =========================
+   BOTÃO NOVO
+========================= */
+
+.btn-novo {
+  height: 38px;
+
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: 1px solid #ffcaca;
+  border-radius: 18px;
+
+  background: #fff0f0;
+
+  color: #171717;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: 0 2px 6px rgba(255, 120, 120, 0.15);
+
+  transition: 0.2s;
+
+  span {
+    font-size: 24px;
+    line-height: 0;
+
+    color: #ff7777;
+    font-weight: 300;
+  }
+
+  &:hover {
+    background: #ffe4e4;
+  }
+}
+
+
+/* =========================
+   TABELA
+========================= */
+
+.tabela-container {
+  width: 100%;
+
+  border: 1px solid #ffcaca;
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  box-shadow: 0 2px 7px rgba(255, 100, 100, 0.22);
+}
+
+table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+thead {
+  height: 40px;
+
+  background: #ffffff;
+}
+
+th {
+  padding: 10px;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  text-align: left;
+
+  color: #222;
+
+  border-bottom: 1px solid #ffbaba;
+}
+
+td {
+  height: 39px;
+
+  padding: 6px 10px;
+
+  font-size: 10px;
+
+  color: #555;
+
+  border-bottom: 1px solid #ffdada;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================
+   FUNCIONÁRIO
+========================= */
+
+.funcionario-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #ffcaca;
+
+  color: #555;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nome-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.nome {
+  font-size: 10px;
+  font-weight: 600;
+
+  color: #444;
+}
+
+.id {
+  margin-top: 1px;
+
+  font-size: 7px;
+
+  color: #bcbcbc;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status {
+  padding: 3px 7px;
+
+  border-radius: 10px;
+
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.status.ativo {
+  background: #dfffca;
+  color: #4fa52c;
+}
+
+.status.inativo {
+  background: #ffd0d0;
+  color: #e64b4b;
+}
+
+
+/* =========================
+   AÇÕES
+========================= */
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.acoes button {
+  width: 18px;
+  height: 18px;
+
+  padding: 0;
+
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 3px;
+
+  cursor: pointer;
+
+  font-size: 11px;
+
+  transition: 0.2s;
+}
+
+.btn-status {
+  width: 18px;
+  height: 18px;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.btn-status i {
+    font-size: 5px;
+}
+
+.btn-status.ativo {
+  background: #dfffca;
+  color: #4fa52c;
+
+  &:hover {
+    background: #c8f5ae;
+  }
+}
+
+.btn-status.inativo {
+  background: #ffd0d0;
+  color: #e64b4b;
+
+  &:hover {
+    background: #ffbaba;
+  }
+}
+
+.btn-editar {
+  background: #dceaff;
+  color: #1670d2;
+
+  &:hover {
+    background: #c6dcfa;
+  }
+}
+
+
+/* =========================
+   PAGINAÇÃO
+========================= */
+
+.paginacao {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 30px;
+}
+
+.pagina {
+  width: 34px;
+  height: 30px;
+
+  border: 1px solid #ffd2d2;
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  color: #222;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow: 0 2px 5px rgba(255, 100, 100, 0.15);
+
+  &:hover {
+    background: #fff0f0;
+  }
+}
+
+.pagina.ativa {
+  background: #ffffff;
+  border-color: #ffc2c2;
+}
+
+.pagina.seta {
+  font-size: 18px;
+  font-weight: 400;
+}

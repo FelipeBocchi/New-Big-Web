@@ -1,0 +1,91 @@
+<div
+  class="modal-overlay"
+  *ngIf="modalAberto"
+  (click)="fecharModal()"
+>
+
+  <div
+    class="funcionarios-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="modal-header">
+
+      <h2>
+        {{ modoEdicao ? 'Editar Funcionário' : 'Novo Funcionário' }}
+      </h2>
+
+      <button
+        class="btn-fechar"
+        (click)="fecharModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <div class="campo">
+
+        <label>Nome</label>
+
+        <input
+          type="text"
+          [(ngModel)]="funcionario.nome"
+          placeholder="Digite o nome"
+        >
+
+      </div>
+
+
+      <div class="campo">
+
+        <label>Telefone</label>
+
+        <input
+          type="text"
+          [(ngModel)]="funcionario.telefone"
+          placeholder="Digite o telefone"
+        >
+
+      </div>
+
+
+      <div class="campo">
+
+        <label>Cargo</label>
+
+        <input
+          type="text"
+          [(ngModel)]="funcionario.cargo"
+          placeholder="Digite o cargo"
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+      <button
+        class="btn-cancelar"
+        (click)="fecharModal()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="btn-salvar"
+        (click)="salvar()"
+      >
+        Salvar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
