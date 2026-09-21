@@ -4,11 +4,13 @@ import { Observable } from 'rxjs';
 
 // Interface ajustada conforme os DTOs do teu Spring Boot
 export interface Produto {
-  id?: string;             // String conforme teu repository.findById(String id)
-  name: string;            // 'name' conforme teu ProductRequestDTO
-  barCode?: string;        // ajuste conforme a propriedade no teu ProductResponseDTO
-  category?: string;       // ajuste conforme a propriedade no teu ProductResponseDTO
-  salePrice: number;       // 'salePrice' conforme teu ProductRequestDTO
+  id?: string;
+  name: string;
+  description?: string;
+  barCode?: string;
+  category?: string;
+  salePrice: number;
+  costPrice?: number;
   status?: 'Ativo' | 'Inativo';
 }
 
