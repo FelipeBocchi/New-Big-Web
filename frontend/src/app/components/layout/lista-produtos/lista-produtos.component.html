@@ -47,7 +47,7 @@
               <button class="btn-action btn-delete" (click)="excluirProduto(prod.id)" title="Excluir">
                 🗑️
               </button>
-              <button class="btn-action btn-edit" title="Editar">
+              <button class="btn-action btn-edit" (click)="abrirModalEdicao(prod)" title="Editar">
                 ✏️
               </button>
             </div>
@@ -68,12 +68,33 @@
 
 </div>
 
+<!-- Modal de confirmação de exclusão -->
+<div class="modal-backdrop" *ngIf="showDeleteModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmar exclusão</h5>
+        <button type="button" class="btn-close" (click)="fecharModalExclusao()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir o produto <strong>{{ produtoParaExcluir?.name }}</strong>?</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="fecharModalExclusao()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmarExclusao()">Excluir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de Cadastro de Produto -->
 <div class="modal-backdrop" *ngIf="showModal">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Cadastrar Novo Produto</h5>
+        <h5 class="modal-title">{{ modoEdicao ? 'Editar Produto' : 'Cadastrar Novo Produto' }}</h5>
         <button type="button" class="btn-close" (click)="fecharModal()">✕</button>
       </div>
       
@@ -95,6 +116,16 @@
           </div>
 
           <div class="form-group mb-3">
+            <label>Descrição</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="novoProduto.description" name="description"></textarea>
+          </div>
+
+          <div class="form-group mb-3">
+            <label>Preço de Custo (R$)</label>
+            <input type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.costPrice" name="costPrice" required />
+          </div>
+
+          <div class="form-group mb-3">
             <label>Preço de Venda (R$)</label>
             <input type="number" step="0.01" class="form-control" [(ngModel)]="novoProduto.salePrice" name="salePrice" required />
           </div>
@@ -110,7 +141,7 @@
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar Produto</button>
+          <button type="submit" class="btn btn-primary">{{ modoEdicao ? 'Salvar Alterações' : 'Salvar Produto' }}</button>
         </div>
       </form>
     </div>

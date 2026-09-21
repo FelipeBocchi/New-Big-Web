@@ -18,12 +18,21 @@ export class ListaProdutosComponent implements OnInit {
 
   produtos: Produto[] = [];
   showModal: boolean = false;
+  showDeleteModal: boolean = false;
+  modoEdicao: boolean = false;
+  produtoParaExcluir: Produto | null = null;
 
   // Signal para vincular ao input de busca do topo
   termoBusca = signal<string>('');
 
   // Objeto vinculado aos campos [(ngModel)] do modal
-  novoProduto: Produto = { status: 'Ativo' } as Produto;
+  novoProduto: Produto = {
+    name: '',
+    description: '',
+    salePrice: 0,
+    costPrice: 0,
+    status: 'Ativo'
+  };
 
   constructor(private produtoService: ProdutoService) {}
 
@@ -52,45 +61,94 @@ export class ListaProdutosComponent implements OnInit {
   }
 
   abrirModal(): void {
-    this.novoProduto = { status: 'Ativo' } as Produto; // Reseta o form com o status padrão
+    this.modoEdicao = false;
+    this.novoProduto = {
+      name: '',
+      description: '',
+      salePrice: 0,
+      costPrice: 0,
+      status: 'Ativo'
+    };
     this.showModal = true;
+  }
+
+  abrirModalEdicao(produto: Produto): void {
+    this.modoEdicao = true;
+    this.novoProduto = { ...produto };
+    this.showModal = true;
+  }
+
+  abrirModalExclusao(produto: Produto): void {
+    this.produtoParaExcluir = produto;
+    this.showDeleteModal = true;
   }
 
   fecharModal(): void {
     this.showModal = false;
+    this.modoEdicao = false;
+  }
+
+  fecharModalExclusao(): void {
+    this.showDeleteModal = false;
+    this.produtoParaExcluir = null;
   }
 
   salvarProduto(): void {
+    if (this.modoEdicao && this.novoProduto.id) {
+      this.produtoService.updateProduct(this.novoProduto.id, this.novoProduto).subscribe({
+        next: () => {
+          alert('Produto atualizado com sucesso!');
+          this.fecharModal();
+          this.carregarProdutos();
+        },
+        error: (err: unknown) => {
+          console.error('Erro ao atualizar produto:', err);
+          alert('Falha ao atualizar o produto.');
+        }
+      });
+      return;
+    }
+
     this.produtoService.createProduct(this.novoProduto).subscribe({
       next: () => {
         alert('Produto cadastrado com sucesso!');
         this.fecharModal();
-        this.carregarProdutos(); // Atualiza a tabela
+        this.carregarProdutos();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Erro ao salvar produto:', err);
         alert('Falha ao cadastrar produto.');
       }
     });
   }
 
-excluirProduto(id?: string): void {
-  if (!id) {
-    console.error('ID do produto não foi encontrado.');
-    return;
-  }
+  confirmarExclusao(): void {
+    if (!this.produtoParaExcluir?.id) {
+      console.error('ID do produto não foi encontrado.');
+      this.fecharModalExclusao();
+      return;
+    }
 
-  if (confirm('Tem certeza que deseja excluir este produto?')) {
-    this.produtoService.deleteProduct(id).subscribe({
+    this.produtoService.deleteProduct(this.produtoParaExcluir.id).subscribe({
       next: () => {
         alert('Produto excluído com sucesso!');
+        this.fecharModalExclusao();
         this.carregarProdutos();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Erro ao excluir produto:', err);
         alert('Falha ao excluir produto.');
       }
     });
   }
-}
+
+  excluirProduto(id?: string): void {
+    const produto = this.produtos.find(p => p.id === id);
+    if (!produto) {
+      console.error('Produto não encontrado para exclusão.');
+      return;
+    }
+
+    this.abrirModalExclusao(produto);
+  }
 }
