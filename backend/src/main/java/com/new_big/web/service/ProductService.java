@@ -27,13 +27,18 @@ public class ProductService {
         this.repository.save(newProduct);
     }
 
-    public Optional<Product> updateProduct(String id, ProductRequestDTO data) {
+    public Optional<Product> updateProduct(Long id, ProductRequestDTO data) {
         Optional<Product> optionalProduct = this.repository.findById(id);
 
         if (optionalProduct.isPresent()) {
             Product product = optionalProduct.get();
             product.setName(data.name());
+            product.setDescription(data.description());
+            product.setBarcode(data.barcode());
+            product.setCategory(data.category());
             product.setSalePrice(data.salePrice());
+            product.setCostPrice(data.costPrice());
+            product.setActive(data.active() == null || data.active());
             this.repository.save(product);
             return Optional.of(product);
         }
@@ -41,7 +46,7 @@ public class ProductService {
         return Optional.empty();
     }
 
-    public boolean deleteProduct(String id) {
+    public boolean deleteProduct(Long id) {
         Optional<Product> optionalProduct = this.repository.findById(id);
 
         if (optionalProduct.isPresent()) {

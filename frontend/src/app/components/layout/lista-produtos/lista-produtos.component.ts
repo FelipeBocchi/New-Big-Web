@@ -16,7 +16,7 @@ import { ProdutoService, Produto } from '../../../services/produto.service';
 })
 export class ListaProdutosComponent implements OnInit {
 
-  produtos: Produto[] = [];
+  produtos = signal<Produto[]>([]);
   showModal: boolean = false;
   showDeleteModal: boolean = false;
   modoEdicao: boolean = false;
@@ -42,11 +42,12 @@ export class ListaProdutosComponent implements OnInit {
 
   // Filtra os produtos em tempo real com base no que for digitado na busca
   produtosFiltrados = computed(() => {
+    const produtos = this.produtos();
     const termo = this.termoBusca().toLowerCase().trim();
     if (!termo) {
-      return this.produtos;
+      return produtos;
     }
-    return this.produtos.filter(p =>
+    return produtos.filter(p =>
       p.name?.toLowerCase().includes(termo) ||
       p.barCode?.toLowerCase().includes(termo) ||
       p.category?.toLowerCase().includes(termo)
@@ -55,7 +56,7 @@ export class ListaProdutosComponent implements OnInit {
 
   carregarProdutos(): void {
     this.produtoService.getAllProducts().subscribe({
-      next: (dados) => this.produtos = dados,
+      next: (dados) => this.produtos.set(dados),
       error: (err) => console.error('Erro ao carregar produtos:', err)
     });
   }
@@ -143,7 +144,7 @@ export class ListaProdutosComponent implements OnInit {
   }
 
   excluirProduto(id?: string): void {
-    const produto = this.produtos.find(p => p.id === id);
+    const produto = this.produtos().find(p => p.id === id);
     if (!produto) {
       console.error('Produto não encontrado para exclusão.');
       return;

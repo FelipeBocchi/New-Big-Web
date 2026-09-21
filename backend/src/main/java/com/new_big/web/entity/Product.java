@@ -45,7 +45,12 @@ public class Product {
     private ProductType productType;
 
     public Product(ProductRequestDTO data){
-        this.salePrice = data.salePrice();
         this.name = data.name();
+        this.description = data.description();
+        this.barcode = data.barcode();
+        this.category = data.category();
+        this.salePrice = data.salePrice();
+        this.costPrice = data.costPrice();
+        this.active = data.active() == null || data.active();
     }
 }
