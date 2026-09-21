@@ -2,28 +2,39 @@
   <div class="retangulo">
 
     <!-- Logo -->
-<div class="logo-wrapper">
-  <img src="assets/logo_newbig.png" alt="New Big Sorvetes e Açaí" class="logo">
-</div>
+    <div class="logo-wrapper">
+      <img src="assets/logo_newbig.png" alt="New Big Sorvetes e Açaí" class="logo">
+    </div>
+
     <!-- Formulário de Login -->
-    <form class="login-form">
+    <form class="login-form" (ngSubmit)="onSubmit()">
 
       <!-- Campo 1: Usuário -->
       <div class="input-group">
         <label for="user">User: CPF ou E-mail</label>
-        <input type="text" id="user" class="input-field" autocomplete="off">
+        <input 
+          type="text" 
+          id="user" 
+          name="email" 
+          [(ngModel)]="email" 
+          class="input-field" 
+          autocomplete="off"
+        >
       </div>
 
       <!-- Campo 2: Senha -->
       <div class="input-group">
         <label for="password">Password</label>
-        <input type="password" id="password" class="input-field">
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          [(ngModel)]="password" 
+          class="input-field"
+        >
       </div>
 
-      <!-- Link Esqueci Minha Senha -->
-      <div class="forgot-password-wrapper">
-        <a href="#" class="forgot-password">Esqueci minha senha</a>
-      </div>
+    
 
       <!-- Botão Entrar -->
       <div class="submit-wrapper">

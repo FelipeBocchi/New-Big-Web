@@ -1,0 +1,79 @@
+<div
+  class="modal-overlay"
+  *ngIf="modalAberto"
+  (click)="fecharModal()"
+>
+  <div
+    class="cliente-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="modal-header">
+
+      <h2>
+        {{ modoEdicao ? 'Editar Cliente' : 'Novo Cliente' }}
+      </h2>
+
+      <button
+        class="btn-fechar"
+        (click)="fecharModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="modal-body">
+
+      <div class="campo">
+        <label>Nome</label>
+
+        <input
+          type="text"
+          [(ngModel)]="cliente.nome"
+          placeholder="Digite o nome"
+        >
+      </div>
+
+      <div class="campo">
+        <label>E-mail</label>
+
+        <input
+          type="email"
+          [(ngModel)]="cliente.email"
+          placeholder="Digite o e-mail"
+        >
+      </div>
+
+      <div class="campo">
+        <label>Telefone</label>
+
+        <input
+          type="text"
+          [(ngModel)]="cliente.telefone"
+          placeholder="Digite o telefone"
+        >
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="btn-cancelar"
+        (click)="fecharModal()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="btn-salvar"
+        (click)="salvar()"
+      >
+        Salvar
+      </button>
+
+    </div>
+
+  </div>
+</div>
