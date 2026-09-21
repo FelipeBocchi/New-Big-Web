@@ -1,30 +1,28 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MenuComponent } from '../menu/menu.component';
-import { RouterOutlet } from '@angular/router';
+// Ajuste o caminho do serviço de produtos se necessário
 import { ProdutoService, Produto } from '../../../services/produto.service';
 
 @Component({
-  selector: 'app-produto',
+  selector: 'app-lista-produtos',
+  standalone: true,
   imports: [
-    CommonModule,  // Necessário para *ngIf, *ngFor e pipes
-    FormsModule,   // Necessário para [(ngModel)] nos inputs
-    MenuComponent, 
-    RouterOutlet
+    CommonModule,  // Necessário para *ngIf, *ngFor e ngClass
+    FormsModule    // Necessário para [(ngModel)] nos inputs do modal
   ],
-  templateUrl: './produto.component.html',
-  styleUrl: './produto.component.scss'
+  templateUrl: './lista-produtos.component.html',
+  styleUrl: './lista-produtos.component.scss'
 })
-export class ProdutoComponent implements OnInit {
+export class ListaProdutosComponent implements OnInit {
 
   produtos: Produto[] = [];
   showModal: boolean = false;
 
-  // Signal para controlar o termo da busca
+  // Signal para vincular ao input de busca do topo
   termoBusca = signal<string>('');
 
-  // Objeto para vincular ao formulário do modal
+  // Objeto vinculado aos campos [(ngModel)] do modal
   novoProduto: Produto = { status: 'Ativo' } as Produto;
 
   constructor(private produtoService: ProdutoService) {}
@@ -33,13 +31,13 @@ export class ProdutoComponent implements OnInit {
     this.carregarProdutos();
   }
 
-  // Filtra a lista de produtos em tempo real com base no termo buscado
+  // Filtra os produtos em tempo real com base no que for digitado na busca
   produtosFiltrados = computed(() => {
     const termo = this.termoBusca().toLowerCase().trim();
     if (!termo) {
       return this.produtos;
     }
-    return this.produtos.filter(p => 
+    return this.produtos.filter(p =>
       p.name?.toLowerCase().includes(termo) ||
       p.barCode?.toLowerCase().includes(termo) ||
       p.category?.toLowerCase().includes(termo)
@@ -54,7 +52,7 @@ export class ProdutoComponent implements OnInit {
   }
 
   abrirModal(): void {
-    this.novoProduto = { status: 'Ativo' } as Produto; // Limpa o formulário e define status padrão
+    this.novoProduto = { status: 'Ativo' } as Produto; // Reseta o form com o status padrão
     this.showModal = true;
   }
 
@@ -67,7 +65,7 @@ export class ProdutoComponent implements OnInit {
       next: () => {
         alert('Produto cadastrado com sucesso!');
         this.fecharModal();
-        this.carregarProdutos(); // Recarrega a lista atualizada
+        this.carregarProdutos(); // Atualiza a tabela
       },
       error: (err) => {
         console.error('Erro ao salvar produto:', err);
@@ -76,18 +74,23 @@ export class ProdutoComponent implements OnInit {
     });
   }
 
-  excluirProduto(id: string): void {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
-      this.produtoService.deleteProduct(id).subscribe({
-        next: () => {
-          alert('Produto excluído com sucesso!');
-          this.carregarProdutos(); // Recarrega a lista atualizada
-        },
-        error: (err) => {
-          console.error('Erro ao excluir produto:', err);
-          alert('Falha ao excluir o produto.');
-        }
-      });
-    }
+excluirProduto(id?: string): void {
+  if (!id) {
+    console.error('ID do produto não foi encontrado.');
+    return;
   }
+
+  if (confirm('Tem certeza que deseja excluir este produto?')) {
+    this.produtoService.deleteProduct(id).subscribe({
+      next: () => {
+        alert('Produto excluído com sucesso!');
+        this.carregarProdutos();
+      },
+      error: (err) => {
+        console.error('Erro ao excluir produto:', err);
+        alert('Falha ao excluir produto.');
+      }
+    });
+  }
+}
 }
