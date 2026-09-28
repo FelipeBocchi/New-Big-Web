@@ -44,7 +44,7 @@ public class CustomerController {
 
         try {
             Customer customer = this.service.findById(id);
-            return new ResponseEntity<CustomerResponse>( CustomerResponse.de(customer), HttpStatus.CREATED);
+            return new ResponseEntity<CustomerResponse>( CustomerResponse.de(customer), HttpStatus.OK   );
 
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

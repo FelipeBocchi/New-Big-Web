@@ -5,6 +5,7 @@ import com.new_big.web.entity.Customer;
 import java.time.LocalDate;
 
 public record CustomerResponse(
+        Long id, //vai ser removido
         String name,
         String cpf,
         String phone,
@@ -14,6 +15,7 @@ public record CustomerResponse(
 ) {
     public static CustomerResponse de(Customer customer) {
         return new CustomerResponse(
+                customer.getId(),
                 customer.getName(),
                 customer.getCpf(),
                 customer.getPhone(),
