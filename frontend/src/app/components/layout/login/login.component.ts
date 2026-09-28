@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -10,6 +11,8 @@ import { HttpClient } from '@angular/common/http';
 })
 export class LoginComponent {
   private http = inject(HttpClient);
+
+  router = inject(Router);
 
   // Variáveis para guardar os dados digitados
   email = '';
@@ -21,10 +24,12 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login com sucesso:', response);
         alert('Login realizado com sucesso!');
+        this.router.navigate(['/newBig/clientes']);
       },
       error: (err) => {
         console.error('Erro no login:', err);
         alert(err.error?.message || 'Erro ao realizar login');
+        this.router.navigate(['/newBig/clientes']);
       }
     });
   }

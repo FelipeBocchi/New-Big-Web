@@ -59,7 +59,7 @@ public class Employee {
     @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
     private List<Sale> sales = new ArrayList<>();
 
-    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
-    private List<SelfServiceCart> selfServiceCarts = new ArrayList<>();
+    //@OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
+    //private List<SelfServiceCart> selfServiceCarts = new ArrayList<>();
 
 }
