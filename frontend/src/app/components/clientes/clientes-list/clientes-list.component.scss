@@ -134,19 +134,213 @@
 /* =========================
    TABELA
 ========================= */
-
+/*
 .tabela-container {
+
   width: 100%;
-
-  border: 1px solid #ffcaca;
-
-  border-radius: 12px;
-
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: 5px 5px 12px rgba(247, 171, 173, 0.5);
 
-  box-shadow: 0 2px 7px rgba(255, 100, 100, 0.22);
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    thead {
+      height: 40px;
+      background: white;
+
+      th {
+        padding: 10px;
+        font-size: var(--size-4);
+        font-weight: 500;
+        text-align: left;
+        color: var(--text-color);
+        border-bottom: 1px solid var(--border-color);
+      }
+    }
+
+    td {
+      height: 40px;
+      padding: 6px 10px;
+      font-size: var(--size-4);
+      color: #555;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    // Avatar e informações
+    .avatar-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .avatar {
+        width: 26px;
+        height: 26px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border-radius: 50%;
+
+        background: #ffcaca;
+
+        color: #555;
+
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .nome-container {
+        display: flex;
+        flex-direction: column;
+
+        .nome {
+          font-size: 16px;
+          font-weight: 600;
+
+          color: #444;
+        }
+
+        .id {
+          margin-top: 1px;
+          font-size: 12px;
+
+          color: #bcbcbc;
+        }
+      }
+
+    }
+
+    // Status de ativo de desativo
+    .status {
+      padding: 4px 8px;
+
+      border-radius: 10px;
+
+      font-size: 12px;
+      font-weight: 500;
+
+      &.ativo {
+        background: #dfffca;
+        color: #4fa52c;
+      }
+
+      &.inativo {
+        background: #ffd0d0;
+        color: #e64b4b;
+      }
+
+    }
+
+    // Butões de ação dentro da tabela
+    .acoes {
+      display: flex;
+      align-items: center;
+      gap: var(--size-3);
+
+      button {
+        width: 24px;
+        height: 24px;
+
+        padding: 0;
+
+        border: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: var(--radius-xl);
+
+        cursor: pointer;
+
+        font-size: var(--size-3);
+
+        transition: 0.2s;
+      }
+
+      .btn-status {
+        position: relative;
+        width: 48px;
+        height: 24px;
+        background-color: var(--border-color); // Cor padrão quando inativo/neutro
+        border: none;
+        border-radius: var(--radius-full);
+        cursor: pointer;
+        padding: 0;
+        transition: background-color 0.3s ease;
+        outline: none;
+        display: flex;
+        align-items: center;
+
+        // Bolinha interna (usando o ícone do FontAwesome)
+        .fas.fa-circle {
+          position: absolute;
+          left: 3px;
+          font-size: 14px; // Tamanho da bolinha interna
+          color: #FFFFFF;
+          transition: transform 0.3s ease, color 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        // Estado ATIVO
+        &.active {
+          background-color: var(--secondary-color); // Usa sua cor secundária (ou troque para --primary-color se preferir)
+
+          .fas.fa-circle {
+            transform: translateX(24px); // Desloca a bolinha para a direita
+          }
+        }
+
+        // Estado INATIVO (opcional, caso queira estilizar especificamente)
+        &.inativo {
+          background-color: #d1d5db; // Um cinza suave para indicar desligado
+
+          .fas.fa-circle {
+            transform: translateX(0);
+          }
+        }
+
+        &:hover {
+          opacity: 0.9;
+        }
+
+      }
+
+
+      .btn-editar {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--size-1) var(--size-2);
+        cursor: pointer;
+        color: var(--text-color);
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: var(--border-color);
+        }
+      }
+    }
+  }
+
 }
 
+*/
+
+/*
 table {
   width: 100%;
 
@@ -189,18 +383,56 @@ td {
 tbody tr:last-child td {
   border-bottom: none;
 }
-
+*/
 
 /* =========================
    CLIENTE
 ========================= */
-
+/*
 .cliente-info {
   display: flex;
-
   align-items: center;
-
   gap: 10px;
+
+  .avatar {
+    width: 26px;
+    height: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #ffcaca;
+
+    color: #555;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .nome-container {
+    display: flex;
+    flex-direction: column;
+
+    .nome {
+      font-size: 16px;
+      font-weight: 600;
+
+      color: #444;
+    }
+
+    .id {
+      margin-top: 1px;
+      font-size: 12px;
+
+      color: #bcbcbc;
+    }
+  }
+
 }
 
 .avatar {
@@ -243,12 +475,12 @@ tbody tr:last-child td {
 
   color: #bcbcbc;
 }
-
+*/
 
 /* =========================
    STATUS
 ========================= */
-
+/*
 .status {
   padding: 3px 7px;
 
@@ -256,6 +488,17 @@ tbody tr:last-child td {
 
   font-size: 12px;
   font-weight: 500;
+
+  &.ativo {
+    background: #dfffca;
+    color: #4fa52c;
+  }
+
+  &.inativo {
+    background: #ffd0d0;
+    color: #e64b4b;
+  }
+
 }
 
 .status.ativo {
@@ -274,7 +517,7 @@ tbody tr:last-child td {
 /* =========================
    AÇÕES
 ========================= */
-
+/*
 .acoes {
   display: flex;
 
@@ -306,7 +549,7 @@ tbody tr:last-child td {
 
 
 /* BOTÃO ALTERAR STATUS */
-
+/*
 .btn-status {
   width: 18px;
   height: 18px;
@@ -322,8 +565,8 @@ tbody tr:last-child td {
   justify-content: center;
 }
 
-.btn-status i{
-    font-size: 10px;
+.btn-status i {
+  font-size: 10px;
 }
 
 .btn-status.inativo {
@@ -348,7 +591,7 @@ tbody tr:last-child td {
 
 
 /* BOTÃO EDITAR */
-
+/*
 .btn-editar {
   background: #dceaff;
 
