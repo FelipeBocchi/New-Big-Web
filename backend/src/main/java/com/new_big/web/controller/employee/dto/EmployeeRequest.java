@@ -19,7 +19,7 @@ public class EmployeeRequest {
     private String name;
 
     @NotBlank(message = "Cpf é obrigatório")
-    @CPF(message = "CPF é inválido")
+    //@CPF(message = "CPF é inválido")
     private String cpf;
 
     @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres")

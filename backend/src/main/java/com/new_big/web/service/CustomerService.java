@@ -3,13 +3,18 @@ package com.new_big.web.service;
 import com.new_big.web.controller.customer.dto.CustomerRequest;
 import com.new_big.web.controller.customer.dto.CustomerResponse;
 import com.new_big.web.entity.Customer;
+import com.new_big.web.entity.Employee;
+import com.new_big.web.exception.ConflictException;
+import com.new_big.web.exception.ResourceNotFoundException;
 import com.new_big.web.repository.CustomerRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.management.RuntimeErrorException;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -24,11 +29,11 @@ public class CustomerService {
 
         if (repository.existsByCpf(request.getCpf())) {
             log.warn("Cadastro rejeitado: CPF já existente ({})", request.getCpf());
-            throw new RuntimeException("Já existe um cliente cadastrado com este CPF");
+            throw new ConflictException("Já existe um cliente cadastrado com este CPF");
         }
         if (repository.existsByEmail(request.getEmail())) {
             log.warn("Cadastro rejeitado: e-mail já existente ({})", request.getEmail());
-            throw new RuntimeException("Já existe um cliente cadastrado com este e-mail");
+            throw new ConflictException("Já existe um cliente cadastrado com este e-mail");
         }
 
         Customer customer = new Customer();
@@ -42,7 +47,7 @@ public class CustomerService {
 
     public Customer findById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado com o ID: " + id));
     }
 
     public List<Customer> findAll() {
@@ -55,11 +60,11 @@ public class CustomerService {
         Customer customer = findById(id);
 
         if (!customer.getCpf().equals(request.getCpf()) && repository.existsByCpf(request.getCpf())) {
-            throw new RuntimeException("Já existe outro cliente cadastrado com este CPF");
+            throw new ConflictException("Já existe outro cliente cadastrado com este CPF");
         }
 
         if (!customer.getEmail().equals(request.getEmail()) && repository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Já existe outro cliente cadastrado com este e-mail");
+            throw new ConflictException("Já existe outro cliente cadastrado com este e-mail");
         }
 
         updateCustomerFields(customer, request);
@@ -70,10 +75,28 @@ public class CustomerService {
 
     @Transactional
     public void inactivate(Long id) {
-        log.info("Inativando cliente. id={}", id);
+
         Customer customer = findById(id);
-        customer.setActive(false);
+
+        if(customer.getActive()) {
+            log.info("Inativando cliente. id={}", id);
+            customer.setActive(false);
+        }else {
+            log.info("Ativado cliente. id={}", id);
+            customer.setActive(true);
+        }
+
         repository.save(customer);
+    }
+
+    //  Service para o end-point de listagem dos clientes ativos e desativos
+    public List<Customer> findByActive(Boolean active) {
+
+        List<Customer> list = repository.findByActive(active);
+
+        if (list.isEmpty()) throw new ResourceNotFoundException(  "Nenhum Cliente encontrado com active: " + active );
+
+        return list;
     }
 
     // Método para evitar repetição de código
