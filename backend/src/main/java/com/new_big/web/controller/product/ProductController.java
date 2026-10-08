@@ -1,11 +1,8 @@
 
 package com.new_big.web.controller.product;
 
-import com.new_big.web.controller.employee.dto.EmployeeRequest;
-import com.new_big.web.controller.employee.dto.EmployeeResponse;
 import com.new_big.web.controller.product.dto.ProductRequest;
 import com.new_big.web.controller.product.dto.ProductResponse;
-import com.new_big.web.entity.Employee;
 import com.new_big.web.entity.Product;
 import com.new_big.web.service.ProductService;
 import jakarta.validation.Valid;

@@ -24,7 +24,7 @@ public class ProductService {
     @Transactional
     public Product save(ProductRequest request) {
 
-        log.info("Criando novo funcionário. name={}", request.getName());
+        log.info("Criando novo produto. name={}", request.getName());
 
         if (this.repository.existsByBarcode(request.getBarcode())) {
             log.warn("Cadastro rejeitado: Barcode já existente ({})", request.getBarcode());
@@ -58,7 +58,7 @@ public class ProductService {
 
         List<Product> list = repository.findByActive(active);
 
-        if (list.isEmpty()) throw new ResourceNotFoundException(  "Nenhum produto encontrado com active: " + active );
+        if (list.isEmpty()) throw new ResourceNotFoundException("Nenhum produto encontrado com active: " + active );
 
         return list;
     }
