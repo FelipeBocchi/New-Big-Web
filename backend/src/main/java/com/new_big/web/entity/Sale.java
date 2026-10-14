@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,13 +19,16 @@ import java.math.BigDecimal;
 public class Sale {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
 
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal discount;
 
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
@@ -44,5 +48,11 @@ public class Sale {
     @ManyToOne
     @JoinColumn( name = "cash_daily_log_id", nullable = false)
     private CashDailyLog cashier;
+
+    @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
+    private List<SaleItem> saleItems;
+
+    @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
+    private List<StockMovement> stockMovements;
 
 }

@@ -43,6 +43,7 @@ public class BatchService {
 
         Batch saved = this.repository.save(batch);
         log.info("Lote criado com sucesso. barcode={}", saved.getBatchCode());
+
         return saved;
     }
 
