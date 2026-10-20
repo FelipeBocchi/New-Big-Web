@@ -17,13 +17,16 @@ import java.time.LocalDateTime;
 public class StockMovement {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column()
     private String observation;
 
-    private Integer quantity;
+    @Column(nullable = false)
+    private int quantity;
 
+    @Column(nullable = false)
     private LocalDateTime movementDate;
 
     @Enumerated(EnumType.STRING)

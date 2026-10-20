@@ -1,5 +1,6 @@
 package com.new_big.web.service;
 
+import com.new_big.web.controller.batch.dto.BatchConsumption;
 import com.new_big.web.controller.batch.dto.BatchRequest;
 import com.new_big.web.controller.product.dto.ProductRequest;
 import com.new_big.web.entity.Batch;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -128,5 +130,44 @@ public class BatchService {
         batch.setQuantity(request.getQuantity());
         batch.setProduct(product);
 
+    }
+
+    public List<BatchConsumption> fefo(Long productId, int quantity) {
+        log.info("inicializando o FEFO");
+
+        // Buca direto do repository do lote para não perdemos tempo com ordenamento ou pexando um lista enorme de lote
+        List<Batch> batches = this.repository.findAvailableBatchesFefo(productId, LocalDate.now());
+
+        long availableQuantity = batches.stream()
+                .mapToLong(Batch::getQuantity)
+                .sum();
+        if (availableQuantity < quantity) { throw new ConflictException("Estoque insuficiente para o produto ID: " + productId); }
+
+        List<BatchConsumption> consumptions = new ArrayList<>();
+
+        int remaining = quantity;
+
+        for (Batch b : batches) {
+
+            if (remaining == 0) break;
+
+            int currentQuantity = b.getQuantity();
+            int quantityToConsume = Math.min(currentQuantity, remaining);
+
+            b.setQuantity(currentQuantity - quantityToConsume);
+
+            // vamos salvar aqui para depois podemos lançar todas as movimentações com o lote correto
+            consumptions.add(
+                    new BatchConsumption(
+                            b.getId(),
+                            b.getBatchCode(),
+                            quantityToConsume
+                    )
+            );
+
+            remaining -= quantityToConsume;
+        }
+
+        return consumptions;
     }
 }

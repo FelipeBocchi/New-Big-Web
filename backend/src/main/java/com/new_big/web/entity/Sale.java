@@ -55,4 +55,15 @@ public class Sale {
     @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
     private List<StockMovement> stockMovements;
 
+    // duas funções para poder ir adicionando item e movimentações a venda e adicionando venda neles
+    public void addSaleItem(SaleItem item) {
+        this.saleItems.add(item);
+        item.setSale(this);
+    }
+
+    public void addStockMovement(StockMovement movement) {
+        this.stockMovements.add(movement);
+        movement.setSale(this);
+    }
+
 }
