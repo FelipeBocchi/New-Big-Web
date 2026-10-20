@@ -38,6 +38,6 @@ public class StockMovement {
     private Batch batch;
 
     @ManyToOne
-    @JoinColumn(name = "saleItem_id")
-    private SaleItem saleItem;
+    @JoinColumn(name = "sale_id")
+    private Sale sale;
 }

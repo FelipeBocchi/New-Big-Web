@@ -1,0 +1,127 @@
+/* Estrutura de Fundo e Contêiner */
+.container-centralizado {
+  min-height: 100vh; 
+  display: flex;
+  justify-content: center; 
+  align-items: center;     
+  background-image: url('./assets/login_background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.retangulo {
+  width: 450px;
+  height: 643.75px;
+  border-radius: 50px;
+  opacity: 0.8;
+  background-color: #f3eae9; /* Tom levemente rosado da opacidade na imagem */
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* Logo */
+.logo-wrapper {
+  margin-top: 10px;
+  margin-bottom: 35px;
+
+  .logo {
+    max-width: 190px;
+    height: auto;
+  }
+}
+
+/* Formulário */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Grupo de Input conforme especificações do Quadro de 346px */
+.input-group {
+  display: flex;
+  flex-direction: column; 
+  width: 346px; 
+  gap: 7px;     /* Espaçamento interno de 7px */
+  margin-bottom: 18px;
+
+  label {
+    font-size: 14px;
+    color: #222222;
+    font-weight: 500;
+    padding-left: 6px;
+  }
+
+  .input-field {
+    width: 100%;
+    height: 52px;
+    border-radius: 26px; /* Borda bem arredondada cápsula */
+    border: none;
+    background-color: #ffffff;
+    padding: 0 20px;
+    box-sizing: border-box;
+    font-size: 15px;
+    outline: none;
+  }
+}
+
+/* Link Esqueci Minha Senha */
+.forgot-password-wrapper {
+  width: 346px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+  margin-bottom: 35px;
+
+  .forgot-password {
+    font-size: 13px;
+    color: #222222;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Botão Entrar */
+.submit-wrapper {
+  .btn-entrar {
+    background: transparent;
+    border: none;
+    color: #030303;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+.logo-wrapper {
+  margin-top: 10px;
+  margin-bottom: 35px;
+  display: flex;
+  justify-content: center;
+}
+
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 35px;
+}
+
+.logo {
+  max-width: 190px; /* Define a largura limite */
+  height: auto;     /* O navegador calcula a altura proporcional automaticamente */
+}

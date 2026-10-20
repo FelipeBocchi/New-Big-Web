@@ -1,78 +1,41 @@
-<div
-  class="modal-overlay"
-  *ngIf="modalAberto"
-  (click)="fecharModal()"
->
-  <div
-    class="cliente-modal"
-    (click)="$event.stopPropagation()"
-  >
+<div class="modal-overlay" *ngIf="modalAberto" (click)="fecharModal()">
+  <div class="cliente-modal" (click)="$event.stopPropagation()">
 
     <div class="modal-header">
-
-      <h2>
-        {{ modoEdicao ? 'Editar Cliente' : 'Novo Cliente' }}
-      </h2>
-
-      <button
-        class="btn-fechar"
-        (click)="fecharModal()"
-      >
-        ×
-      </button>
-
+      <h2>{{ modoEdicao ? 'Editar Cliente' : 'Novo Cliente' }}</h2>
+      <button class="btn-fechar" (click)="fecharModal()">×</button>
     </div>
 
     <div class="modal-body">
-
       <div class="campo">
         <label>Nome</label>
-
-        <input
-          type="text"
-          [(ngModel)]="cliente.nome"
-          placeholder="Digite o nome"
-        >
+        <input type="text" [(ngModel)]="cliente.name" placeholder="Digite o nome" />
       </div>
 
       <div class="campo">
         <label>E-mail</label>
-
-        <input
-          type="email"
-          [(ngModel)]="cliente.email"
-          placeholder="Digite o e-mail"
-        >
+        <input type="email" [(ngModel)]="cliente.email" placeholder="Digite o e-mail" />
       </div>
 
       <div class="campo">
         <label>Telefone</label>
-
-        <input
-          type="text"
-          [(ngModel)]="cliente.telefone"
-          placeholder="Digite o telefone"
-        >
+        <input type="text" [(ngModel)]="cliente.phone" placeholder="Digite o telefone" />
       </div>
 
+      <div class="campo">
+        <label>CPF</label>
+        <input type="text" [(ngModel)]="cliente.cpf" placeholder="Digite o CPF" />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>Data de Nascimento</label>
+      <input type="date" [(ngModel)]="cliente.birthDate" placeholder="Selecione a data" />
     </div>
 
     <div class="modal-footer">
-
-      <button
-        class="btn-cancelar"
-        (click)="fecharModal()"
-      >
-        Cancelar
-      </button>
-
-      <button
-        class="btn-salvar"
-        (click)="salvar()"
-      >
-        Salvar
-      </button>
-
+      <button class="btn-cancelar" (click)="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" (click)="save()">Salvar</button>
     </div>
 
   </div>
