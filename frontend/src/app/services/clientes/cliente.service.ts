@@ -26,6 +26,10 @@ export class ClienteService {
     return this.http.delete<any>(this.API + "/" + id)
   }
 
+  ativa(cliente: Customer, id: number): Observable<Customer> {
+    return this.http.patch<Customer>(this.API + "/" + id, cliente)
+  }
+
   update(cliente: Customer, id: number): Observable<Customer> {
     return this.http.put<Customer>(this.API + "/" + id, cliente);
   }
