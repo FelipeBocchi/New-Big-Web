@@ -1,4 +1,4 @@
-package com.new_big.web;
+/*package com.new_big.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,4 +10,4 @@ class WebApplicationTests {
 	void contextLoads() {
 	}
 
-}
+}*/

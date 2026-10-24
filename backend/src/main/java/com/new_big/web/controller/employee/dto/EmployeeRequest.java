@@ -6,10 +6,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -19,7 +17,7 @@ public class EmployeeRequest {
     private String name;
 
     @NotBlank(message = "Cpf é obrigatório")
-    @CPF(message = "CPF é inválido")
+    //@CPF(message = "CPF é inválido")
     private String cpf;
 
     @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres")

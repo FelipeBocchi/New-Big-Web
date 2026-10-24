@@ -23,7 +23,7 @@ public class SelfServiceCart {
 
     private String token;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private BigDecimal total;
 
     private LocalDateTime createdAt;
@@ -34,6 +34,11 @@ public class SelfServiceCart {
     private CartStatus status;
 
     @ManyToOne
-    @JoinColumn( name = "customer_id")
+    @JoinColumn(name = "customer_id")
     private Customer customer;
+
+    // Adicionado para satisfazer o mappedBy = "employee" na classe Employee
+    @ManyToOne
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
 }

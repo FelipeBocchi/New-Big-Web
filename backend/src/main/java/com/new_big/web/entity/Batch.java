@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -16,18 +16,26 @@ import java.time.LocalDateTime;
 public class Batch {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 20)
     private String batchCode;
 
+    @Column(nullable = false)
     private int quantity;
 
-    private Boolean active;
+    @Column(nullable = false)
+    private Boolean expiration;
 
-    private LocalDateTime createdAt;
+    @Column(name = "quantity_is_zero", nullable = false)
+    private Boolean quantityIsZero;
 
-    private LocalDateTime expirationAt;
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+
+    @Column(name = "expiration_at")
+    private LocalDate expirationAt;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)

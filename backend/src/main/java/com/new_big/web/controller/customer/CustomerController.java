@@ -28,13 +28,11 @@ public class CustomerController {
     @PostMapping()
     public ResponseEntity<CustomerResponse> save(@Valid @RequestBody CustomerRequest customerRequest) {
 
-        try {
-            Customer customer = this.service.save(customerRequest);
-            return new ResponseEntity<CustomerResponse>( CustomerResponse.de(customer), HttpStatus.CREATED);
+        Customer customer = this.service.save(customerRequest);
 
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(CustomerResponse.de(customer));
     }
 
     // FIND_BY_ID
@@ -42,13 +40,11 @@ public class CustomerController {
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> findById(@PathVariable Long id) {
 
-        try {
-            Customer customer = this.service.findById(id);
-            return new ResponseEntity<CustomerResponse>( CustomerResponse.de(customer), HttpStatus.OK   );
+        Customer customer = this.service.findById(id);
 
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(CustomerResponse.de(customer));
     }
 
     // FIND_ALL
@@ -66,24 +62,35 @@ public class CustomerController {
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> update(@PathVariable Long id, @Valid @RequestBody CustomerRequest request) {
 
-        try {
-            Customer customer = service.update(id, request);
-            return ResponseEntity.ok(CustomerResponse.de(customer));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Customer customer = this.service.update(id, request);
+
+        return ResponseEntity
+                .ok(CustomerResponse.de(customer));
     }
 
-    // INATIVA
+    // INATIVA / ATIVA
     // DELETE LOCALHOST:8080/API/CUSTOMER/5
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        try {
-            service.inactivate(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+
+        this.service.inactivate(id);
+
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
+
+    // LISTA CLIENTE PELO ACTIVE (TRUE OR FALSE)
+    // GET LOCALHOST:8080/API/CUSTOMER/TRUE
+    @GetMapping("/active/{active}")
+    public ResponseEntity<List<CustomerResponse>> findByActive(
+            @PathVariable Boolean active
+    ) {
+
+        List<CustomerResponse> responseList = this.service.findByActive(active).stream()
+                .map(CustomerResponse::de)
+                .toList();
+        return ResponseEntity.ok(responseList);
     }
 
 }

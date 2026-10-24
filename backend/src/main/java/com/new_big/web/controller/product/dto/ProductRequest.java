@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,24 +17,25 @@ import java.math.BigDecimal;
 @Setter
 public class ProductRequest {
 
-    @NotNull
-    @Positive
-    private int minimumStock;
-
-    @NotNull(message = "Um cliente deve ser ativo ou inativo")
-    private Boolean active;
-
     @NotBlank(message = "Nome é obrigatório")
     private String name;
 
     @NotBlank(message = "Nome é obrigatório")
     private String description;
 
-    @NotBlank(message = "Nome é obrigatório")
+    @NotBlank(message = "Categoria é obrigatório")
+    private String category;
+
+    @NotBlank(message = "Barcode é obrigatório")
+    @Size(max = 3, message = "Barcode deve ter no máximo 3 caracteres")
     private String barcode;
 
-    @NotBlank(message = "Nome é obrigatório")
-    private String category;
+    @NotNull
+    @Positive
+    private int minimumStock;
+
+    @NotNull(message = "Um produto deve ser ativo ou inativo")
+    private Boolean active;
 
     @NotNull
     @Positive
