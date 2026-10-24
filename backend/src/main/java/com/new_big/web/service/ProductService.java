@@ -1,7 +1,6 @@
 package com.new_big.web.service;
 
 import com.new_big.web.controller.product.dto.ProductRequest;
-import com.new_big.web.entity.Employee;
 import com.new_big.web.entity.Product;
 import com.new_big.web.exception.ConflictException;
 import com.new_big.web.exception.ResourceNotFoundException;

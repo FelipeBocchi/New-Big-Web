@@ -1,9 +1,7 @@
 package com.new_big.web.service;
 
 import com.new_big.web.controller.customer.dto.CustomerRequest;
-import com.new_big.web.controller.customer.dto.CustomerResponse;
 import com.new_big.web.entity.Customer;
-import com.new_big.web.entity.Employee;
 import com.new_big.web.exception.ConflictException;
 import com.new_big.web.exception.ResourceNotFoundException;
 import com.new_big.web.repository.CustomerRepository;
@@ -12,9 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.management.RuntimeErrorException;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service

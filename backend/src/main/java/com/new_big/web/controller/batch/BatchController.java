@@ -2,10 +2,7 @@ package com.new_big.web.controller.batch;
 
 import com.new_big.web.controller.batch.dto.BatchRequest;
 import com.new_big.web.controller.batch.dto.BatchResponse;
-import com.new_big.web.controller.product.dto.ProductRequest;
-import com.new_big.web.controller.product.dto.ProductResponse;
 import com.new_big.web.entity.Batch;
-import com.new_big.web.entity.Product;
 import com.new_big.web.service.BatchService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
