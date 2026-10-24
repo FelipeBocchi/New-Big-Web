@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -40,13 +41,13 @@ public class CashDailyService {
         cash.setOpeningAmount(request.getOpeningAmount());
         cash.setClosingAmount(null);
         cash.setExpectedClosingAmount(request.getOpeningAmount());
-        cash.setTotal(request.getOpeningAmount());
+        cash.setTotal(BigDecimal.ZERO);
         cash.setOpenedAt(LocalDateTime.now());
         cash.setClosedAt(null);
         cash.setStatus(CashStatus.OPEN);
         cash.setOpenedBy(employee);
         cash.setClosedBy(null);
-        cash.setSales(null);
+        cash.setSales(new ArrayList<>());
 
         CashDailyLog saved = this.repository.save(cash);
         log.info("Caixa criado com sucesso.");
@@ -58,6 +59,11 @@ public class CashDailyService {
     public void addAmountToCash(Long id, BigDecimal amount, PaymentMethod method) {
         log.info("Inicializando o processo de adição do valor e tipo da venda feita nesse caixa id={}", id);
         CashDailyLog cash = this.findInfoById(id);
+
+        if(cash.getStatus() == CashStatus.CLOSED) {
+            log.warn("Caixa deve estar aberto para adicionar um valor a ele!");
+            throw new ConflictException("Caixa deve estar aberto para adicionar um valor a ele!");
+        }
 
         BigDecimal total = cash.getTotal();
         if (method == PaymentMethod.CASH) {
@@ -77,6 +83,11 @@ public class CashDailyService {
         log.info("Fechando caixa. id={}", id);
         CashDailyLog cash = this.repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Caixa não encontrado no banco com esse id"));
+
+        if (cash.getStatus() == CashStatus.CLOSED) {
+            log.warn("Caixa ainda não foi ou esta aberto!");
+            throw new ConflictException("Caixa ainda não foi ou esta aberto!");
+        }
 
         // Regra de negócio de fechamento de caixa, se o valor que o funcionário informar não bater com a conta interna gera um erro
         if (!cash.getExpectedClosingAmount().equals(request.getClosingAmount())) {
