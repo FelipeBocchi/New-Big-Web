@@ -1,7 +1,6 @@
 package com.new_big.web.service;
 
 import com.new_big.web.controller.batch.dto.BatchRequest;
-import com.new_big.web.controller.product.dto.ProductRequest;
 import com.new_big.web.entity.Batch;
 import com.new_big.web.entity.Product;
 import com.new_big.web.exception.ConflictException;
@@ -83,7 +82,6 @@ public class BatchService {
         Batch batch = this.findById(id);
 
         if (request.getBatchCode() != null) batch.setBatchCode(request.getBatchCode());
-        //if (request.getQuantity() != null) batch.setQuantity(request.getQuantity());
         if (request.getExpirationAt() != null) batch.setExpirationAt(request.getExpirationAt());
         if (request.getProductId() != null) {
             Product product = this.productRepository.findById(request.getProductId())

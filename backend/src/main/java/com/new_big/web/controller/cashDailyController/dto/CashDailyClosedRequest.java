@@ -1,6 +1,5 @@
 package com.new_big.web.controller.cashDailyController.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;

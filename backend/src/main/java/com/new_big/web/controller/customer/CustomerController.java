@@ -2,7 +2,6 @@ package com.new_big.web.controller.customer;
 
 import com.new_big.web.controller.customer.dto.CustomerRequest;
 import com.new_big.web.controller.customer.dto.CustomerResponse;
-import com.new_big.web.controller.employee.dto.EmployeeResponse;
 import com.new_big.web.entity.Customer;
 import com.new_big.web.service.CustomerService;
 import jakarta.validation.Valid;
