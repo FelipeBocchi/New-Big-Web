@@ -406,7 +406,7 @@ public class CashDailyServiceTest {
         );
 
         CashDailyClosedRequest request = createClosedRequest(
-                new BigDecimal("100.0"),
+                new BigDecimal("100.00"),
                 EMPLOYEE_ID
         );
 

@@ -50,8 +50,8 @@ class SaleItemServiceTest {
         sale.setId(SALE_ID);
 
         List<BatchConsumption> consumptions = List.of(
-                new BatchConsumption(101L, "Lt-01", 1),
-                new BatchConsumption(102L, "Lt-02",2)
+                new BatchConsumption(101L, "Lt-01", 2),
+                new BatchConsumption(102L, "Lt-02",3)
         );
 
         // When — o serviço transforma os consumos em itens da venda.
