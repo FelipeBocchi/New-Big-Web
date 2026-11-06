@@ -85,9 +85,8 @@ class SaleServiceTest {
         customer = new Customer();
     }
 
-    // ==========================================
     // OPEN
-    // ==========================================
+
 
     @Test
     void caso_Abrir_Venda_Quando_Caixa_E_Funcionario_Existirem() {
@@ -672,9 +671,8 @@ class SaleServiceTest {
         verify(repository, never()).save(any(Sale.class));
     }
 
-    // ==========================================
+
     // HELPERS
-    // ==========================================
 
     private SaleOpenRequest createOpenRequest(
             Long customerId,
