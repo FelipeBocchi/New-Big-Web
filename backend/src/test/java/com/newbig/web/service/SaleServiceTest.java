@@ -12,6 +12,7 @@ import com.newbig.web.exception.ConflictException;
 import com.newbig.web.exception.ResourceNotFoundException;
 import com.newbig.web.repository.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -89,8 +90,10 @@ class SaleServiceTest {
 
 
     @Test
+    @DisplayName("")
     void caso_Abrir_Venda_Quando_Caixa_E_Funcionario_Existirem() {
 
+        // Arrage
         // Given — existe um caixa e um funcionário.
         SaleOpenRequest request = createOpenRequest(
                 null,
