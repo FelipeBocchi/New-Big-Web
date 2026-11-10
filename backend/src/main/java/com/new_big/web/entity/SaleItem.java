@@ -16,13 +16,16 @@ import java.math.BigDecimal;
 public class SaleItem {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private BigDecimal quantity;
+    @Column(nullable = false)
+    private int quantity;
 
+    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
     @ManyToOne
