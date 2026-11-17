@@ -89,22 +89,20 @@ public class SaleService {
 
         List<StockMovement> movements = this.movementService.saveMovementSale(consumptions, sale);
 
-        BigDecimal subTotal = BigDecimal.ZERO;
-        for (SaleItem i : items) {
-            subTotal = subTotal.add(i.getTotal());
-        }
-
-        BigDecimal total = subTotal.subtract(request.getDiscountUnit());
-
-        BigDecimal discont = sale.getDiscount().add(request.getDiscountUnit());
-        sale.setDiscount(discont);
-        sale.setSubtotal(subTotal);
-        sale.setTotal(total);
-
-
         items.forEach(sale::addSaleItem);
-
         movements.forEach(sale::addStockMovement);
+
+        BigDecimal subtotal = sale.getSaleItems().stream()
+                .map(SaleItem::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal discount =
+                sale.getDiscount().add(request.getDiscountUnit());
+
+        sale.setSubtotal(subtotal);
+        sale.setDiscount(discount);
+        sale.setTotal(subtotal.subtract(discount));
+
 
         this.repository.save(sale);
         log.info("Item adicionado com sucesso!");
@@ -119,8 +117,13 @@ public class SaleService {
         Sale sale = this.repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venda não emcontrado com o id"));
 
+        if (sale.getStatus() != SaleStatus.OPENED) {
+            log.warn("Venda está com status fechado já");
+            throw new ConflictException("Somente vendas abertas podem ser fechadas");
+        }
+
         // pagamento
-        if (!request.getValueArrived().equals(sale.getTotal())) {
+        if (request.getValueArrived().compareTo(sale.getTotal()) != 0) {
             log.warn("Valor recebido não bate com o valor total da venda");
             throw new ResourceNotFoundException("Valor recebido não bate com o valor total da venda");
         }

@@ -5,6 +5,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,4 +97,20 @@ public class GlobalExceptionHandler {
 
         return problem;
     }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleIntegrity(
+            DataIntegrityViolationException exception
+    ) {
+        ProblemDetail problem =
+                ProblemDetail.forStatus(HttpStatus.CONFLICT);
+
+        problem.setTitle("Conflito de integridade");
+        problem.setDetail(
+                "A operação viola uma restrição dos dados cadastrados."
+        );
+
+        return problem;
+    }
+
 }

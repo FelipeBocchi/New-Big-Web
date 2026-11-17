@@ -1,9 +1,12 @@
 package com.newbig.web.controller.batch;
 
+import com.newbig.web.config.validation.BatchCreation;
 import com.newbig.web.controller.batch.dto.BatchRequest;
 import com.newbig.web.controller.batch.dto.BatchResponse;
 import com.newbig.web.entity.Batch;
 import com.newbig.web.service.BatchService;
+import com.newbig.web.config.validation.CompleteRequest;
+import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +29,8 @@ public class BatchController {
     // POST LOCALHOST:8080/API/BATCH
     @PostMapping()
     public ResponseEntity<BatchResponse> save(
-            @Valid @RequestBody BatchRequest request
+            @Validated(BatchCreation.class)
+            @RequestBody BatchRequest request
     ) {
 
         Batch batch = this.service.save(request);
@@ -81,7 +85,7 @@ public class BatchController {
     @PutMapping("/{id}")
     public ResponseEntity<BatchResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody BatchRequest request
+            @Validated(CompleteRequest.class) @RequestBody BatchRequest request
     ) {
 
         Batch batch = this.service.update(request, id);

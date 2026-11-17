@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Clock;
 
 @Slf4j
 @Service
@@ -26,6 +27,8 @@ public class BatchService {
 
     private final BatchRepository repository;
     private final ProductRepository productRepository;
+    private final StockMovementService movementService;
+    private final Clock clock;
 
     @Transactional
     public Batch save(BatchRequest request) {
@@ -39,12 +42,18 @@ public class BatchService {
 
         Batch batch = new Batch();
         updateFields(batch, request);
-        batch.setExpiration(false); // vamos inicializar como false pq não vai permitir uma data no passado
+        batch.setCreatedAt(LocalDate.now(clock));
+        batch.setExpiration(false);
         batch.setQuantityIsZero(false);
 
-        Batch saved = this.repository.save(batch);
-        log.info("Lote criado com sucesso. barcode={}", saved.getBatchCode());
+        Batch saved = repository.save(batch);
 
+        movementService.saveMovementEntry(
+                saved,
+                request.getEmployeeId()
+        );
+
+        log.info("Lote criado com sucesso. barcode={}", saved.getBatchCode());
         return saved;
     }
 
@@ -78,60 +87,109 @@ public class BatchService {
         return repository.save(batch);
     }
 
+
     @Transactional
     public Batch updatePartial(BatchRequest request, Long id) {
         log.info("Atualizando produto. id={}", id);
-        Batch batch = this.findById(id);
+        Batch batch = findById(id);
 
-        if (request.getBatchCode() != null) batch.setBatchCode(request.getBatchCode());
-        if (request.getExpirationAt() != null) batch.setExpirationAt(request.getExpirationAt());
+        if (request.getBatchCode() != null
+                && !request.getBatchCode().equals(batch.getBatchCode())
+                && repository.existsByBatchCode(request.getBatchCode())) {
+            throw new ConflictException(
+                    "Já existe outro lote cadastrado com este código"
+            );
+        }
+
+        // Valida antes de alterar os campos.
+        if (request.getQuantity() != null) {
+            validateQuantity(request.getQuantity());
+        }
+
+        if (request.getExpirationAt() != null) {
+            validateExpiration(request.getExpirationAt());
+        }
+
+        Product product = null;
+
         if (request.getProductId() != null) {
-            Product product = this.productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com na hora de criar um lote "));
+            product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Produto não encontrado para o lote"
+                            )
+                    );
+        }
 
+        if (request.getBatchCode() != null) {
+            batch.setBatchCode(request.getBatchCode());
+        }
+
+        if (request.getQuantity() != null) {
+            batch.setQuantity(request.getQuantity());
+            batch.setQuantityIsZero(false);
+        }
+
+        if (request.getExpirationAt() != null) {
+            batch.setExpirationAt(request.getExpirationAt());
+            batch.setExpiration(false);
+        }
+
+        if (product != null) {
             batch.setProduct(product);
         }
 
-        return this.repository.save(batch);
+        return repository.save(batch);
     }
 
-
-    @Scheduled(cron = "0 0 0 * * *", zone = "America/Sao_Paulo")
+    @Scheduled(
+            cron = "0 0 0 * * *",
+            zone = "America/Sao_Paulo"
+    )
     @Transactional
     public void toggleExpiration() {
-        LocalDate today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
-        log.info("Iniciando verificação de validade dos lotes. Data: {}", today);
-        List<Batch> batchList = this.findAll();
+        log.info("Iniciando verificação de validade dos lotes. Data");
+        LocalDate today = LocalDate.now(clock);
 
-        for (Batch b : batchList) {
+        for (Batch batch : repository.findAll()) {
+            LocalDate expirationAt = batch.getExpirationAt();
 
-            LocalDate expirationAt = b.getExpirationAt();
+            if (expirationAt != null
+                    && !expirationAt.isAfter(today)
+                    && !Boolean.TRUE.equals(batch.getExpiration())) {
 
-            if (!expirationAt.isAfter(today) && Boolean.TRUE.equals(b.getExpiration())) {
-
-                b.setExpiration(true);
-                this.repository.save(b);
-
-                log.info("Lote {} marcado como expirado. Vencimento: {}", b.getBatchCode(), expirationAt);
+                batch.setExpiration(true);
+                repository.save(batch);
+                log.info("Lote {} marcado como expirado. Vencimento: {}", batch.getBatchCode(), expirationAt);
             }
         }
         log.info("Verificação diária de validade dos lotes concluída.");
     }
 
     public void updateFields(Batch batch, BatchRequest request) {
-        Product product = this.productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com na hora de criar um lote "));
+        validateQuantity(request.getQuantity());
+        validateExpiration(request.getExpirationAt());
+
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Produto não encontrado para o lote"
+                        )
+                );
 
         batch.setBatchCode(request.getBatchCode());
-        batch.setCreatedAt(LocalDate.now());
         batch.setExpirationAt(request.getExpirationAt());
         batch.setQuantity(request.getQuantity());
         batch.setProduct(product);
 
+        // As validações acima exigem validade futura e quantidade positiva.
+        batch.setExpiration(false);
+        batch.setQuantityIsZero(false);
     }
 
     public List<BatchConsumption> fefo(Long productId, int quantity) {
         log.info("inicializando o FEFO");
+        validateQuantity(quantity);
 
         // Buca direto do repository do lote para não perdemos tempo com ordenamento ou pexando um lista enorme de lote
         List<Batch> batches = this.repository.findAvailableBatchesFefo(productId, LocalDate.now());
@@ -139,26 +197,31 @@ public class BatchService {
         long availableQuantity = batches.stream()
                 .mapToLong(Batch::getQuantity)
                 .sum();
+
         if (availableQuantity < quantity) { throw new ConflictException("Estoque insuficiente para o produto ID: " + productId); }
 
         List<BatchConsumption> consumptions = new ArrayList<>();
-
         int remaining = quantity;
 
-        for (Batch b : batches) {
+        for (Batch batch : batches) {
+            if (remaining == 0) {
+                break;
+            }
 
-            if (remaining == 0) break;
+            int quantityToConsume = Math.min(
+                    batch.getQuantity(),
+                    remaining
+            );
 
-            int currentQuantity = b.getQuantity();
-            int quantityToConsume = Math.min(currentQuantity, remaining);
+            int newQuantity = batch.getQuantity() - quantityToConsume;
 
-            b.setQuantity(currentQuantity - quantityToConsume);
+            batch.setQuantity(newQuantity);
+            batch.setQuantityIsZero(newQuantity == 0);
 
-            // vamos salvar aqui para depois podemos lançar todas as movimentações com o lote correto
             consumptions.add(
                     new BatchConsumption(
-                            b.getId(),
-                            b.getBatchCode(),
+                            batch.getId(),
+                            batch.getBatchCode(),
                             quantityToConsume
                     )
             );
@@ -167,5 +230,22 @@ public class BatchService {
         }
 
         return consumptions;
+    }
+
+    private void validateQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new ConflictException(
+                    "A quantidade deve ser maior que zero"
+            );
+        }
+    }
+
+    private void validateExpiration(LocalDate expiration) {
+        if (expiration == null
+                || !expiration.isAfter(LocalDate.now(clock))) {
+            throw new ConflictException(
+                    "A validade deve estar no futuro"
+            );
+        }
     }
 }

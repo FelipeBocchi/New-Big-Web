@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
 public class EmployeeService {
 
     private final EmployeeRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Employee save(EmployeeRequest request) {
@@ -84,7 +86,11 @@ public class EmployeeService {
         atualizarEmailSeNecessario(employee, employeeRequest.getEmail());
 
         if (employeeRequest.getUsername() != null) employee.setUsername(employeeRequest.getUsername());
-        if (employeeRequest.getPassword() != null) employee.setPassword(employeeRequest.getPassword());
+        if (employeeRequest.getPassword() != null) {
+            employee.setPassword(
+                    passwordEncoder.encode(employeeRequest.getPassword())
+            );
+        }
         if (employeeRequest.getActive() != null) employee.setActive(employeeRequest.getActive());
         if (employeeRequest.getAdmin() != null) employee.setAdmin(employeeRequest.getAdmin());
         if (employeeRequest.getBirthDate() != null) employee.setBirthDate(employeeRequest.getBirthDate());
@@ -144,7 +150,12 @@ public class EmployeeService {
         employee.setPhone(request.getPhone());
         employee.setEmail(request.getEmail());
         employee.setUsername(request.getUsername());
-        employee.setPassword(request.getPassword()); // Lembrete: Encriptar com BCrypt no futuro
+
+        employee.setPassword(
+                passwordEncoder.encode(request.getPassword())
+        );
+
+        employee.setBirthDate(request.getBirthDate());
         employee.setActive(request.getActive());
         employee.setRole(request.getRole());
         employee.setAdmin(request.getAdmin());

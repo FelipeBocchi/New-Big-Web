@@ -57,10 +57,11 @@ class BatchControllerTest {
     private String jsonLote() {
         return """
                 {
-                    "batchCode": "LOTE001",
-                    "quantity": 100,
-                    "productId": 1,
-                    "expirationAt": "%s"
+                  "batchCode": "LOTE001",
+                  "quantity": 100,
+                  "productId": 1,
+                  "employeeId": 1,
+                  "expirationAt": "2027-12-31"
                 }
                 """.formatted(LocalDate.now().plusDays(30));
     }

@@ -1,13 +1,11 @@
 package com.newbig.web.controller.product.dto;
 
+import com.newbig.web.config.validation.CompleteRequest;
 import com.newbig.web.enums.ProductType;
 import com.newbig.web.enums.UnitType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,31 +15,46 @@ import java.math.BigDecimal;
 @Setter
 public class ProductRequest {
 
-    @NotBlank(message = "Nome é obrigatório")
+    @NotBlank(
+            groups = CompleteRequest.class, message = "Nome é obrigatório"
+    )
+    @Pattern(
+            regexp = "(?s).*\\S.*", message = "O campo não pode estar em branco"
+    )
     private String name;
 
-    @NotBlank(message = "Nome é obrigatório")
+    @NotBlank(
+            groups = CompleteRequest.class, message = "Description é obrigatório"
+    )
+    @Pattern(
+            regexp = "(?s).*\\S.*", message = "O campo não pode estar em branco"
+    )
     private String description;
 
-    @NotBlank(message = "Categoria é obrigatório")
+    @NotBlank(
+            groups = CompleteRequest.class, message = "Category é obrigatório"
+    )
+    @Pattern(
+            regexp = "(?s).*\\S.*", message = "O campo não pode estar em branco"
+    )
     private String category;
 
     @NotBlank(message = "Barcode é obrigatório")
     @Size(max = 3, message = "Barcode deve ter no máximo 3 caracteres")
     private String barcode;
 
-    @NotNull
+    @NotNull(groups = CompleteRequest.class)
     @Positive
-    private int minimumStock;
+    private Integer minimumStock;
 
-    @NotNull(message = "Um produto deve ser ativo ou inativo")
+    @NotNull(groups = CompleteRequest.class)
     private Boolean active;
 
-    @NotNull
+    @NotNull(groups = CompleteRequest.class)
     @Positive
     private BigDecimal salePrice;
 
-    @NotNull
+    @NotNull(groups = CompleteRequest.class)
     @Positive
     private BigDecimal costPrice;
 

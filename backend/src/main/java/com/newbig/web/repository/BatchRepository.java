@@ -24,6 +24,7 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
                 AND b.quantityIsZero = false
                 AND b.expiration = false
                 AND b.quantity > 0
+                AND b.expirationAt > :today
         ORDER BY b.expirationAt ASC, b.id ASC
         """)
     List<Batch> findAvailableBatchesFefo(

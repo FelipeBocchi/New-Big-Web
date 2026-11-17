@@ -35,7 +35,7 @@ public class Product {
     @Column(nullable = false, length = 200)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String barcode;
 
     @Column(nullable = false, length = 150)

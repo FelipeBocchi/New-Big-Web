@@ -5,6 +5,8 @@ import com.newbig.web.controller.product.dto.ProductRequest;
 import com.newbig.web.controller.product.dto.ProductResponse;
 import com.newbig.web.entity.Product;
 import com.newbig.web.service.ProductService;
+import com.newbig.web.config.validation.CompleteRequest;
+import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +28,7 @@ public class ProductController {
     // POST LOCALHOST:8080/API/PRODUCT
     @PostMapping()
     public ResponseEntity<ProductResponse> save(
-            @Valid @RequestBody ProductRequest request
+            @Validated(CompleteRequest.class) @RequestBody ProductRequest request
     ) {
 
         Product product = this.service.save(request);
@@ -96,7 +98,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody ProductRequest request
+            @Validated(CompleteRequest.class) @RequestBody ProductRequest request
     ) {
 
         Product product = this.service.update(request, id);

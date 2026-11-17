@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +28,29 @@ public class CashDailyService {
 
     private final CashDailyRepository repository;
     private final EmployeeRepository employeeRepository;
+    private final Clock clock;
 
     @Transactional
     public CashDailyLog open(CashDailyOpenedRequest request) {
 
+        if (request == null) {
+            throw new ConflictException("Informe os dados de abertura");
+        }
         log.info("Criando novo caixa pelo funcionário id={}", request.getEmployeeId());
 
-        Employee employee = this.employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado com o id"));
+        requirePositive(request.getOpeningAmount());
+
+        Employee employee = findEmployee(request.getEmployeeId());
 
         CashDailyLog cash = new CashDailyLog();
-
         cash.setOpeningAmount(request.getOpeningAmount());
-        cash.setClosingAmount(null);
         cash.setExpectedClosingAmount(request.getOpeningAmount());
         cash.setTotal(BigDecimal.ZERO);
-        cash.setOpenedAt(LocalDateTime.now());
-        cash.setClosedAt(null);
-        cash.setStatus(CashStatus.OPEN);
+        cash.setOpenedAt(LocalDateTime.now(clock));
         cash.setOpenedBy(employee);
+        cash.setStatus(CashStatus.OPEN);
+        cash.setClosingAmount(null);
+        cash.setClosedAt(null);
         cash.setClosedBy(null);
         cash.setSales(new ArrayList<>());
 
@@ -58,64 +63,127 @@ public class CashDailyService {
     @Transactional
     public void addAmountToCash(Long id, BigDecimal amount, PaymentMethod method) {
         log.info("Inicializando o processo de adição do valor e tipo da venda feita nesse caixa id={}", id);
-        CashDailyLog cash = this.findInfoById(id);
+        requirePositive(amount);
+
+        if (method == null) {
+            throw new ConflictException("Informe o método de pagamento");
+        }
+
+        CashDailyLog cash = findInfoById(id);
+        requireOpen(cash);
 
         if(cash.getStatus() == CashStatus.CLOSED) {
             log.warn("Caixa deve estar aberto para adicionar um valor a ele!");
             throw new ConflictException("Caixa deve estar aberto para adicionar um valor a ele!");
         }
 
-        BigDecimal total = cash.getTotal();
+        BigDecimal total = cash.getTotal().add(amount);
+        BigDecimal expected = cash.getExpectedClosingAmount();
+
         if (method == PaymentMethod.CASH) {
-            BigDecimal d = cash.getExpectedClosingAmount();
-            cash.setExpectedClosingAmount(d.add(amount));
-            cash.setTotal(total.add(amount));
-        } else {
-            cash.setTotal(total.add(amount));
+            expected = expected.add(amount);
         }
 
-        log.info("Alterações feitas com sucesso!");
-        this.repository.save(cash);
+        cash.setTotal(total);
+        cash.setExpectedClosingAmount(expected);
+
+
+        repository.save(cash);
     }
 
     @Transactional
     public CashDailyLog close(CashDailyClosedRequest request, Long id) {
         log.info("Fechando caixa. id={}", id);
-        CashDailyLog cash = this.repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Caixa não encontrado no banco com esse id"));
 
-        if (cash.getStatus() == CashStatus.CLOSED) {
-            log.warn("Caixa ainda não foi ou esta aberto!");
-            throw new ConflictException("Caixa ainda não foi ou esta aberto!");
+        if (request == null) {
+            throw new ConflictException("Informe os dados de fechamento");
         }
 
-        // Regra de negócio de fechamento de caixa, se o valor que o funcionário informar não bater com a conta interna gera um erro
-        if (!cash.getExpectedClosingAmount().equals(request.getClosingAmount())) {
-            log.warn("Valor experado no caixa em dinheiro não é compativel com o valor informado");
-            throw new ConflictException("Valor experado no caixa em dinheiro não é compativel com o valor informado");
+        BigDecimal received = request.getClosingAmount();
+
+        if (received == null || received.signum() < 0) {
+            throw new ConflictException(
+                    "O valor de fechamento não pode ser nulo ou negativo"
+            );
         }
 
-        if (cash.getClosingAmount() == null) cash.setClosingAmount(request.getClosingAmount());
-        if (cash.getClosedAt() == null) cash.setClosedAt(LocalDateTime.now());
-        if (cash.getClosedBy() == null) {
-            Employee employee = this.employeeRepository.findById(request.getEmployeeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado com ess id"));
+        CashDailyLog cash = findInfoById(id);
+        requireOpen(cash);
 
-            cash.setClosedBy(employee);
+        if (cash.getExpectedClosingAmount().compareTo(received) != 0) {
+            throw new ConflictException(
+                    "Valor informado difere do dinheiro esperado no caixa"
+            );
         }
 
+        // Busca o funcionário antes de modificar a entidade.
+        Employee employee = findEmployee(request.getEmployeeId());
+
+        cash.setClosingAmount(received);
+        cash.setClosedAt(LocalDateTime.now(clock));
+        cash.setClosedBy(employee);
         cash.setStatus(CashStatus.CLOSED);
 
-        log.info("Caixa fechado com sucesso!");
-        return this.repository.save(cash);
+        return repository.save(cash);
     }
 
     public List<CashDailyLog> findAll() { return this.repository.findAll(); }
 
     public CashDailyLog findInfoById(Long id) {
+        if (id == null || id <= 0) {
+            throw new ConflictException("Informe um ID de caixa válido");
+        }
 
-        return this.repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Não foi possivel encontrar um caixa com esse id"));
+        return repository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Caixa não encontrado com o ID: " + id
+                        )
+                );
+    }
+
+    private Employee findEmployee(Long id) {
+        if (id == null || id <= 0) {
+            throw new ConflictException(
+                    "Informe um ID de funcionário válido"
+            );
+        }
+
+        return employeeRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Funcionário não encontrado com o ID: " + id
+                        )
+                );
+    }
+
+    private void requirePositive(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new ConflictException(
+                    "O valor deve ser maior que zero"
+            );
+        }
+    }
+
+    private void requireOpen(CashDailyLog cash) {
+        if (cash.getStatus() != CashStatus.OPEN) {
+            throw new ConflictException("O caixa deve estar aberto");
+        }
+
+        if (cash.getClosingAmount() != null
+                || cash.getClosedAt() != null
+                || cash.getClosedBy() != null) {
+            throw new ConflictException(
+                    "Caixa aberto com dados de fechamento: regularize o cadastro"
+            );
+        }
+
+        if (cash.getTotal() == null
+                || cash.getExpectedClosingAmount() == null) {
+            throw new ConflictException(
+                    "Caixa com saldos não inicializados"
+            );
+        }
     }
 
 }

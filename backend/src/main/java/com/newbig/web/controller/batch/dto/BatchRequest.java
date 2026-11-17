@@ -1,9 +1,8 @@
 package com.newbig.web.controller.batch.dto;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.newbig.web.config.validation.BatchCreation;
+import com.newbig.web.config.validation.CompleteRequest;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,17 +12,30 @@ import java.time.LocalDate;
 @Setter
 public class BatchRequest {
 
-    @NotBlank(message = "códego de lote é obrigatório")
+    @NotBlank(
+            groups = CompleteRequest.class, message = "Nome é obrigatório"
+    )
+    @Pattern(
+            regexp = "(?s).*\\S.*", message = "O campo não pode estar em branco"
+    )
     private String batchCode;
 
-    @NotNull
+    @NotNull(groups = CompleteRequest.class)
     @Positive
-    private int quantity;
+    private Integer quantity;
 
-    @NotNull
+    @NotNull(groups = CompleteRequest.class)
     private Long productId;
 
-    @Future(message = "lote deve ter uma validade no futuro")
+    @NotNull(
+            groups = BatchCreation.class,
+            message = "Informe o funcionário responsável pela entrada"
+    )
+    @Positive
+    private Long employeeId;
+
+    @NotNull(groups = CompleteRequest.class)
+    @Future(message = "Lote deve ter uma validade no futuro")
     private LocalDate expirationAt;
 
 }

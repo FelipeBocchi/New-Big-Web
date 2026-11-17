@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -50,10 +51,10 @@ public class Sale {
     private CashDailyLog cashier;
 
     @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
-    private List<SaleItem> saleItems;
+    private List<SaleItem> saleItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "sale", fetch = FetchType.LAZY)
-    private List<StockMovement> stockMovements;
+    private List<StockMovement> stockMovements = new ArrayList<>();
 
     // duas funções para poder ir adicionando item e movimentações a venda e adicionando venda neles
     public void addSaleItem(SaleItem item) {

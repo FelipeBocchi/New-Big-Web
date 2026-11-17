@@ -5,6 +5,8 @@ import com.newbig.web.controller.employee.dto.EmployeeResponse;
 import com.newbig.web.entity.Employee;
 import com.newbig.web.enums.EmployeeRole;
 import com.newbig.web.service.EmployeeService;
+import com.newbig.web.config.validation.CompleteRequest;
+import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,7 @@ public class EmployeeController {
     // POST LOCALHOST:8080/API/EMPLOYEE
     @PostMapping()
     public ResponseEntity<EmployeeResponse> save(
-            @Valid @RequestBody EmployeeRequest request
+            @Validated(CompleteRequest.class) @RequestBody EmployeeRequest request
     ) {
 
         Employee employee = this.service.save(request);
@@ -66,7 +68,7 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody EmployeeRequest request
+            @Validated(CompleteRequest.class) @RequestBody EmployeeRequest request
     ) {
 
         Employee employee = this.service.update(request, id);

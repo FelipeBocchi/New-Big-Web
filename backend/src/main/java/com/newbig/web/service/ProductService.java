@@ -78,22 +78,61 @@ public class ProductService {
         return repository.save(product);
     }
 
+
     @Transactional
     public Product updatePartial(ProductRequest request, Long id) {
         log.info("Atualizando produto. id={}", id);
-        Product product = this.findById(id);
+        Product product = findById(id);
 
-        if (request.getName() != null) product.setName(request.getName());
-        if (request.getDescription() != null) product.setDescription(request.getDescription());
-        if (request.getCategory() != null) product.setCategory(request.getCategory());
-        if (request.getBarcode() != null) product.setBarcode(request.getBarcode());
-        if (request.getActive() != null) product.setActive(request.getActive());
-        if (request.getCostPrice() != null) product.setCostPrice(request.getCostPrice());
-        if (request.getSalePrice() != null) product.setSalePrice(request.getSalePrice());
-        if (request.getProductType() != null) product.setProductType(request.getProductType());
-        if (request.getUnitType() != null) product.setUnitType(request.getUnitType());
+        if (request.getBarcode() != null
+                && !request.getBarcode().equals(product.getBarcode())
+                && repository.existsByBarcode(request.getBarcode())) {
+            throw new ConflictException(
+                    "Já existe outro produto cadastrado com este Barcode"
+            );
+        }
 
-        return this.repository.save(product);
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+
+        if (request.getCategory() != null) {
+            product.setCategory(request.getCategory());
+        }
+
+        if (request.getBarcode() != null) {
+            product.setBarcode(request.getBarcode());
+        }
+
+        if (request.getActive() != null) {
+            product.setActive(request.getActive());
+        }
+
+        if (request.getMinimumStock() != null) {
+            product.setMinimumStock(request.getMinimumStock());
+        }
+
+        if (request.getCostPrice() != null) {
+            product.setCostPrice(request.getCostPrice());
+        }
+
+        if (request.getSalePrice() != null) {
+            product.setSalePrice(request.getSalePrice());
+        }
+
+        if (request.getProductType() != null) {
+            product.setProductType(request.getProductType());
+        }
+
+        if (request.getUnitType() != null) {
+            product.setUnitType(request.getUnitType());
+        }
+
+        return repository.save(product);
     }
 
     @Transactional
@@ -121,6 +160,9 @@ public class ProductService {
         product.setMinimumStock(request.getMinimumStock());
         product.setCostPrice(request.getCostPrice());
         product.setSalePrice(request.getSalePrice());
+
+        product.setUnitType(request.getUnitType());
+        product.setProductType(request.getProductType());
     }
 
 }

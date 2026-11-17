@@ -2,128 +2,477 @@ package com.newbig.web.service;
 
 import com.newbig.web.controller.product.dto.ProductRequest;
 import com.newbig.web.entity.Product;
+import com.newbig.web.enums.ProductType;
+import com.newbig.web.enums.UnitType;
 import com.newbig.web.exception.ConflictException;
 import com.newbig.web.exception.ResourceNotFoundException;
 import com.newbig.web.repository.ProductRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.*;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("ProductService — testes unitários")
 class ProductServiceTest {
+    private static final Long ID = 1L;
 
     @Mock
     private ProductRepository repository;
 
     @InjectMocks
-    private ProductService productService;
+    private ProductService service;
 
-    @Test
-    @DisplayName("Deve salvar um produto com sucesso quando o código de barras não estiver cadastrado")
-    void deveSalvarProdutoComSucesso() {
-        // Arrange (Dado)
-        ProductRequest request = new ProductRequest();
-        request.setName("Coca-Cola 2L");
-        request.setBarcode("7891000");
-        request.setCostPrice(BigDecimal.valueOf(8.0));
-        request.setSalePrice(BigDecimal.valueOf(12.0));
-        request.setActive(true);
+    @Nested
+    @DisplayName("save — cadastro")
+    class Save {
+        @Test
+        @DisplayName("Deve mapear os dados e retornar o produto salvo")
+        void deveSalvar() {
+            // Arrange
+            ProductRequest request = request();
+            Product saved = new Product();
+            saved.setId(ID);
 
-        when(repository.existsByBarcode(anyString())).thenReturn(false);
-        when(repository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(repository.existsByBarcode(request.getBarcode()))
+                    .thenReturn(false);
+            when(repository.save(any(Product.class))).thenReturn(saved);
 
-        // Act (Quando)
-        Product result = productService.save(request);
+            // Act
+            Product result = service.save(request);
 
-        // Assert (Então)
-        assertNotNull(result);
-        assertEquals("Coca-Cola 2L", result.getName());
-        assertEquals("7891000", result.getBarcode());
-        verify(repository, times(1)).existsByBarcode("7891000");
-        verify(repository, times(1)).save(any(Product.class));
+            // Assert
+            ArgumentCaptor<Product> captor =
+                    ArgumentCaptor.forClass(Product.class);
+
+            verify(repository).save(captor.capture());
+            assertMapped(request, captor.getValue());
+            assertSame(saved, result);
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar código de barras duplicado")
+        void deveRejeitarDuplicidade() {
+            // Arrange
+            ProductRequest request = request();
+
+            when(repository.existsByBarcode(request.getBarcode()))
+                    .thenReturn(true);
+
+            // Act + Assert
+            assertThrows(
+                    ConflictException.class,
+                    () -> service.save(request)
+            );
+
+            verify(repository, never()).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar código de outro produto no PATCH sem salvar")
+        void deveRejeitarCodigoDuplicadoNoPatch() {
+            // Arrange
+            Product existing = product();
+
+            ProductRequest patch = new ProductRequest();
+            patch.setBarcode("002");
+
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(existing));
+
+            when(repository.existsByBarcode("002"))
+                    .thenReturn(true);
+
+            // Act + Assert
+            assertThrows(
+                    ConflictException.class,
+                    () -> service.updatePartial(patch, ID)
+            );
+
+            assertEquals("001", existing.getBarcode());
+            verify(repository, never()).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("Deve aceitar o próprio código no PATCH sem verificar duplicidade")
+        void deveAceitarCodigoAtualNoPatch() {
+            // Arrange
+            Product existing = product();
+
+            ProductRequest patch = new ProductRequest();
+            patch.setBarcode(existing.getBarcode());
+
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(existing));
+
+            when(repository.save(existing))
+                    .thenReturn(existing);
+
+            // Act
+            Product result = service.updatePartial(patch, ID);
+
+            // Assert
+            assertSame(existing, result);
+            assertEquals("001", existing.getBarcode());
+
+            verify(repository, never()).existsByBarcode(anyString());
+            verify(repository).save(existing);
+        }
     }
 
-    @Test
-    @DisplayName("Deve lançar ConflictException ao tentar salvar produto com código de barras já existente (Caminho Triste)")
-    void naoDeveSalvarProdutoComBarcodeDuplicado() {
-        // Arrange (Dado)
-        ProductRequest request = new ProductRequest();
-        request.setBarcode("7891000");
+    @Nested
+    @DisplayName("Consultas")
+    class Queries {
+        @Test
+        @DisplayName("Deve retornar produto pelo ID")
+        void deveBuscarPorId() {
+            // Arrange
+            Product product = product();
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
 
-        when(repository.existsByBarcode("7891000")).thenReturn(true);
+            // Act
+            Product result = service.findById(ID);
 
-        // Act & Assert (Quando & Então)
-        ConflictException exception = assertThrows(ConflictException.class, () -> {
-            productService.save(request);
-        });
+            // Assert
+            assertSame(product, result);
+        }
 
-        assertEquals("Já existe um produto cadastrado com este barcode", exception.getMessage());
-        verify(repository, never()).save(any(Product.class));
+        @Test
+        @DisplayName("Deve rejeitar ID inexistente")
+        void deveRejeitarIdAusente() {
+            // Arrange
+            when(repository.findById(ID)).thenReturn(Optional.empty());
+
+            // Act + Assert
+            assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> service.findById(ID)
+            );
+        }
+
+        @Test
+        @DisplayName("Deve retornar produto pelo código de barras")
+        void deveBuscarPorBarcode() {
+            // Arrange
+            Product product = product();
+            when(repository.findByBarcode("001")).thenReturn(product);
+
+            // Act
+            Product result = service.findByBarcode("001");
+
+            // Assert
+            assertSame(product, result);
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar código de barras inexistente")
+        void deveRejeitarBarcodeAusente() {
+            // Arrange
+            when(repository.findByBarcode("001")).thenReturn(null);
+
+            // Act + Assert
+            assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> service.findByBarcode("001")
+            );
+        }
+
+        @ParameterizedTest(name = "Lista vazia: {0}")
+        @ValueSource(booleans = {true, false})
+        @DisplayName("Deve retornar a listagem, inclusive vazia")
+        void deveListar(boolean empty) {
+            // Arrange
+            List<Product> expected =
+                    empty ? List.of() : List.of(product());
+
+            when(repository.findAll()).thenReturn(expected);
+
+            // Act
+            List<Product> result = service.findAll();
+
+            // Assert
+            assertEquals(expected, result);
+        }
+
+        @ParameterizedTest(name = "Ativo: {0}; lista vazia: {1}")
+        @CsvSource({
+                "true,false",
+                "false,false",
+                "true,true",
+                "false,true"
+        })
+        @DisplayName("Deve filtrar atividade e rejeitar ausência de resultados — contrato atual")
+        void deveFiltrarAtividade(boolean active, boolean empty) {
+            // Arrange
+            Product product = product();
+            product.setActive(active);
+
+            when(repository.findByActive(active))
+                    .thenReturn(empty ? List.of() : List.of(product));
+
+            // Act + Assert
+            if (empty) {
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> service.findByActive(active)
+                );
+            } else {
+                assertEquals(
+                        List.of(product),
+                        service.findByActive(active)
+                );
+            }
+        }
     }
 
-    @Test
-    @DisplayName("Deve retornar um produto com sucesso ao buscar por ID existente")
-    void deveBuscarProdutoPorIdComSucesso() {
-        // Arrange (Dado)
-        Long productId = 1L;
-        Product product = new Product();
-        product.setId(productId);
-        product.setName("Refrigerante");
+    @Nested
+    @DisplayName("update e updatePartial — alterações")
+    class Updates {
+        @ParameterizedTest(name = "Alterar código: {0}")
+        @ValueSource(booleans = {false, true})
+        @DisplayName("Deve atualizar produto mantendo código ou usando um novo livre")
+        void deveAtualizar(boolean changeBarcode) {
+            // Arrange
+            Product product = product();
+            ProductRequest request = changedRequest();
 
-        when(repository.findById(productId)).thenReturn(Optional.of(product));
+            if (changeBarcode) request.setBarcode("002");
 
-        // Act (Quando)
-        Product result = productService.findById(productId);
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
 
-        // Assert (Então)
-        assertNotNull(result);
-        assertEquals(productId, result.getId());
-        assertEquals("Refrigerante", result.getName());
+            if (changeBarcode) {
+                when(repository.existsByBarcode("002"))
+                        .thenReturn(false);
+            }
+
+            when(repository.save(product)).thenReturn(product);
+
+            // Act
+            Product result = service.update(request, ID);
+
+            // Assert
+            assertSame(product, result);
+            assertMapped(request, product);
+            verify(repository).save(product);
+
+            if (!changeBarcode) {
+                verify(repository, never())
+                        .existsByBarcode(anyString());
+            }
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar atualização com código de outro produto")
+        void deveRejeitarDuplicidade() {
+            // Arrange
+            Product product = product();
+            ProductRequest request = changedRequest();
+            request.setBarcode("002");
+
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
+            when(repository.existsByBarcode("002"))
+                    .thenReturn(true);
+
+            // Act + Assert
+            assertThrows(
+                    ConflictException.class,
+                    () -> service.update(request, ID)
+            );
+
+            assertEquals("001", product.getBarcode());
+            verify(repository, never()).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("Deve aplicar campos presentes no PATCH, incluindo false e tipos")
+        void deveAplicarPatch() {
+            // Arrange
+            Product product = product();
+            ProductRequest request = changedRequest();
+            request.setBarcode("002");
+
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
+            when(repository.save(product)).thenReturn(product);
+
+            // Act
+            Product result = service.updatePartial(request, ID);
+
+            // Assert
+            assertSame(product, result);
+            assertPatchMapped(request, product);
+            verify(repository).save(product);
+        }
+
+        @Test
+        @DisplayName("Deve preservar os campos omitidos no PATCH")
+        void devePreservarCampos() {
+            // Arrange
+            Product product = product();
+            ProductRequest expected = request();
+            ProductRequest patch = new ProductRequest();
+
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
+            when(repository.save(product)).thenReturn(product);
+
+            // Act
+            service.updatePartial(patch, ID);
+
+            // Assert
+            assertMapped(expected, product);
+            assertEquals(UnitType.UNIT, product.getUnitType());
+            assertEquals(ProductType.BEVERAGE, product.getProductType());
+            verify(repository).save(product);
+        }
+
+        @ParameterizedTest(name = "PATCH: {0}")
+        @ValueSource(booleans = {false, true})
+        @DisplayName("Deve rejeitar alteração de produto inexistente")
+        void deveRejeitarAusente(boolean partial) {
+            // Arrange
+            ProductRequest request = request();
+            when(repository.findById(ID)).thenReturn(Optional.empty());
+
+            // Act + Assert
+            assertThrows(ResourceNotFoundException.class, () -> {
+                if (partial) service.updatePartial(request, ID);
+                else service.update(request, ID);
+            });
+
+            verify(repository, never()).save(any(Product.class));
+        }
     }
 
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao buscar por ID inexistente (Caminho Triste)")
-    void naoDeveEncontrarProdutoPorIdInexistente() {
-        // Arrange (Dado)
-        Long productId = 99L;
-        when(repository.findById(productId)).thenReturn(Optional.empty());
+    @Nested
+    @DisplayName("toggle — atividade")
+    class Toggle {
+        @ParameterizedTest(name = "Antes: {0}; depois: {1}")
+        @CsvSource({"true,false", "false,true"})
+        @DisplayName("Deve alternar a atividade nas duas direções")
+        void deveAlternar(boolean before, boolean after) {
+            // Arrange
+            Product product = product();
+            product.setActive(before);
 
-        // Act & Assert (Quando & Então)
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            productService.findById(productId);
-        });
+            when(repository.findById(ID))
+                    .thenReturn(Optional.of(product));
 
-        assertTrue(exception.getMessage().contains("Produto não encontrado com o ID"));
+            // Act
+            service.toggle(ID);
+
+            // Assert
+            assertEquals(after, product.getActive());
+            verify(repository).save(product);
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar toggle de produto inexistente")
+        void deveRejeitarAusente() {
+            // Arrange
+            when(repository.findById(ID)).thenReturn(Optional.empty());
+
+            // Act + Assert
+            assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> service.toggle(ID)
+            );
+
+            verify(repository, never()).save(any(Product.class));
+        }
     }
 
-    @Test
-    @DisplayName("Deve inativar ou ativar o status do produto com sucesso (Toggle)")
-    void deveAlternarStatusDoProduto() {
-        // Arrange (Dado)
-        Long productId = 1L;
-        Product product = new Product();
-        product.setId(productId);
-        product.setActive(true);
+    private ProductRequest request() {
+        ProductRequest r = new ProductRequest();
+        r.setName("Suco");
+        r.setDescription("Suco de uva");
+        r.setCategory("Bebidas");
+        r.setBarcode("001");
+        r.setActive(true);
+        r.setMinimumStock(3);
+        r.setCostPrice(new BigDecimal("5.00"));
+        r.setSalePrice(new BigDecimal("8.00"));
+        r.setUnitType(UnitType.UNIT);
+        r.setProductType(ProductType.BEVERAGE);
+        return r;
+    }
 
-        when(repository.findById(productId)).thenReturn(Optional.of(product));
-        when(repository.save(any(Product.class))).thenReturn(product);
+    private ProductRequest changedRequest() {
+        ProductRequest r = request();
+        r.setName("Sorvete");
+        r.setDescription("Sorvete de chocolate");
+        r.setCategory("Gelados");
+        r.setActive(false);
+        r.setMinimumStock(7);
+        r.setCostPrice(new BigDecimal("9.00"));
+        r.setSalePrice(new BigDecimal("15.00"));
+        r.setUnitType(UnitType.KG);
+        r.setProductType(ProductType.ICE_CREAM);
+        return r;
+    }
 
-        // Act (Quando)
-        productService.toggle(productId);
+    private Product product() {
+        ProductRequest r = request();
+        Product p = new Product();
+        p.setId(ID);
+        p.setName(r.getName());
+        p.setDescription(r.getDescription());
+        p.setCategory(r.getCategory());
+        p.setBarcode(r.getBarcode());
+        p.setActive(r.getActive());
+        p.setMinimumStock(r.getMinimumStock());
+        p.setCostPrice(r.getCostPrice());
+        p.setSalePrice(r.getSalePrice());
+        p.setUnitType(r.getUnitType());
+        p.setProductType(r.getProductType());
+        return p;
+    }
 
-        // Assert (Então)
-        assertFalse(product.getActive()); // Como estava true, deve ter mudado para false
-        verify(repository, times(1)).save(product);
+    private void assertMapped(ProductRequest r, Product p) {
+        assertCommonFields(r, p);
+        assertEquals(r.getMinimumStock(), p.getMinimumStock());
+
+        // unitType/productType ausentes no save/update:
+        // lacuna discutida separadamente.
+    }
+
+    private void assertPatchMapped(ProductRequest r, Product p) {
+        assertCommonFields(r, p);
+        assertEquals(r.getUnitType(), p.getUnitType());
+        assertEquals(r.getProductType(), p.getProductType());
+
+        // minimumStock ausente no PATCH:
+        // lacuna discutida separadamente.
+    }
+
+    private void assertCommonFields(ProductRequest r, Product p) {
+        assertAll(
+                () -> assertEquals(r.getName(), p.getName()),
+                () -> assertEquals(r.getDescription(), p.getDescription()),
+                () -> assertEquals(r.getCategory(), p.getCategory()),
+                () -> assertEquals(r.getBarcode(), p.getBarcode()),
+                () -> assertEquals(r.getActive(), p.getActive()),
+                () -> assertEquals(
+                        0,
+                        r.getCostPrice().compareTo(p.getCostPrice())
+                ),
+                () -> assertEquals(
+                        0,
+                        r.getSalePrice().compareTo(p.getSalePrice())
+                )
+        );
     }
 }
