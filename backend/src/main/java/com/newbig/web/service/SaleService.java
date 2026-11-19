@@ -1,9 +1,9 @@
 package com.newbig.web.service;
 
 import com.newbig.web.controller.batch.dto.BatchConsumption;
-import com.newbig.web.controller.salecontroller.dto.SaleAddRequest;
-import com.newbig.web.controller.salecontroller.dto.SaleCloseRequest;
-import com.newbig.web.controller.salecontroller.dto.SaleOpenRequest;
+import com.newbig.web.controller.sale.dto.SaleAddRequest;
+import com.newbig.web.controller.sale.dto.SaleCloseRequest;
+import com.newbig.web.controller.sale.dto.SaleOpenRequest;
 import com.newbig.web.entity.*;
 import com.newbig.web.enums.SaleStatus;
 import com.newbig.web.exception.ConflictException;

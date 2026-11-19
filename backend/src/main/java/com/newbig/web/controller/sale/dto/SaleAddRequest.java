@@ -1,4 +1,4 @@
-package com.newbig.web.controller.salecontroller.dto;
+package com.newbig.web.controller.sale.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

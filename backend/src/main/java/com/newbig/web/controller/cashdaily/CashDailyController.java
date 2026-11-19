@@ -1,9 +1,9 @@
-package com.newbig.web.controller.cashdailycontroller;
+package com.newbig.web.controller.cashdaily;
 
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyClosedRequest;
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyClosedResponse;
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyOpenedRequest;
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyOpenedResponse;
+import com.newbig.web.controller.cashdaily.dto.CashDailyClosedRequest;
+import com.newbig.web.controller.cashdaily.dto.CashDailyClosedResponse;
+import com.newbig.web.controller.cashdaily.dto.CashDailyOpenedRequest;
+import com.newbig.web.controller.cashdaily.dto.CashDailyOpenedResponse;
 import com.newbig.web.entity.CashDailyLog;
 import com.newbig.web.service.CashDailyService;
 import jakarta.validation.Valid;

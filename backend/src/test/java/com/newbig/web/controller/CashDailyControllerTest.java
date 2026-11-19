@@ -1,8 +1,8 @@
 package com.newbig.web.controller;
 
-import com.newbig.web.controller.cashdailycontroller.CashDailyController;
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyClosedRequest;
-import com.newbig.web.controller.cashdailycontroller.dto.CashDailyOpenedRequest;
+import com.newbig.web.controller.cashdaily.CashDailyController;
+import com.newbig.web.controller.cashdaily.dto.CashDailyClosedRequest;
+import com.newbig.web.controller.cashdaily.dto.CashDailyOpenedRequest;
 import com.newbig.web.entity.CashDailyLog;
 import com.newbig.web.entity.Employee;
 import com.newbig.web.enums.CashStatus;

@@ -25,8 +25,8 @@ public class BackendConfiguration {
                 configuration.clockProvider(() -> clock);
     }
 
-    @Bean
+    /*@Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
+    }*/
 }

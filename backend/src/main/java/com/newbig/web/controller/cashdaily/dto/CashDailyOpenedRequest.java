@@ -1,4 +1,4 @@
-package com.newbig.web.controller.cashdailycontroller.dto;
+package com.newbig.web.controller.cashdaily.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

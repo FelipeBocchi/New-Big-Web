@@ -1,6 +1,6 @@
-package com.newbig.web.controller.salecontroller;
+package com.newbig.web.controller.sale;
 
-import com.newbig.web.controller.salecontroller.dto.*;
+import com.newbig.web.controller.sale.dto.*;
 import com.newbig.web.entity.Sale;
 import com.newbig.web.service.SaleService;
 import jakarta.validation.Valid;

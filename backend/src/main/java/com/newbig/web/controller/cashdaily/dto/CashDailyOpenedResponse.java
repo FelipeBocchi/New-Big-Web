@@ -1,4 +1,4 @@
-package com.newbig.web.controller.cashdailycontroller.dto;
+package com.newbig.web.controller.cashdaily.dto;
 
 import com.newbig.web.entity.CashDailyLog;
 import com.newbig.web.enums.CashStatus;

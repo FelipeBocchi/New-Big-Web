@@ -1,4 +1,4 @@
-package com.newbig.web.controller.salecontroller.dto;
+package com.newbig.web.controller.sale.dto;
 
 import com.newbig.web.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;

@@ -1,9 +1,9 @@
 package com.newbig.web.controller;
 
-import com.newbig.web.controller.salecontroller.SaleController;
-import com.newbig.web.controller.salecontroller.dto.SaleAddRequest;
-import com.newbig.web.controller.salecontroller.dto.SaleCloseRequest;
-import com.newbig.web.controller.salecontroller.dto.SaleOpenRequest;
+import com.newbig.web.controller.sale.SaleController;
+import com.newbig.web.controller.sale.dto.SaleAddRequest;
+import com.newbig.web.controller.sale.dto.SaleCloseRequest;
+import com.newbig.web.controller.sale.dto.SaleOpenRequest;
 import com.newbig.web.entity.Customer;
 import com.newbig.web.entity.Employee;
 import com.newbig.web.entity.Sale;
