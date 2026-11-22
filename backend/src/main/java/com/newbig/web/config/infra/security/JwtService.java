@@ -4,34 +4,55 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.newbig.web.entity.Employee;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 @Service
 public class JwtService {
 
     private final Algorithm algorithm;
     private final String issuer;
+    private final long expirationSeconds;
 
     public JwtService(
-            @Value("${api.security.token.secret:minha-secret-default}") String secret,
-            @Value("${api.security.token.issuer:minha-aplicacao}") String issuer) {
+            @Value("${api.security.token.secret}") String secret,
+            @Value("${api.security.token.issuer:new-big-web}") String issuer,
+            @Value("${api.security.token.expiration-seconds:900}") long expirationSeconds) {
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("A chave JWT precisa ter pelo menos 32 bytes");
+        }
+        if (issuer.isBlank() || expirationSeconds <= 0) {
+            throw new IllegalArgumentException("Emissor e validade do JWT são obrigatórios");
+        }
         this.algorithm = Algorithm.HMAC256(secret);
         this.issuer = issuer;
+        this.expirationSeconds = expirationSeconds;
     }
 
-    public String gerarToken(Employee employee) {
+    public long getExpirationSeconds() {
+        return expirationSeconds;
+    }
+
+    public String gerarToken(EmployeeUserDetails employee) {
         try {
+            Instant now = Instant.now();
+
             return JWT.create()
                     .withIssuer(issuer)
-                    .withSubject(employee.getEmail())
-                    .withClaim("id", employee.getId())
-                    .withClaim("role", employee.getAdmin()) // dar uma olhada pq estou usando o boolean admin e não o role
-                    .withExpiresAt(Instant.now().plus(8, ChronoUnit.HOURS))
+                    .withSubject(employee.getUsername())
+                    .withClaim("id", employee.getEmployeeId())
+                    .withArrayClaim(
+                            "authorities",
+                            employee.getAuthorities().stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .toArray(String[]::new)
+                    )
+                    .withIssuedAt(now)
+                    .withExpiresAt(now.plusSeconds(expirationSeconds))
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
             throw new IllegalStateException("Erro ao gerar token JWT", exception);

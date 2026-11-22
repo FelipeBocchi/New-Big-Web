@@ -1,8 +1,10 @@
 package com.newbig.web.service;
 
+import com.newbig.web.config.infra.security.EmployeeUserDetails;
 import com.newbig.web.config.infra.security.JwtService;
 import com.newbig.web.controller.auth.dto.LoginRequest;
-import com.newbig.web.entity.Employee;
+import com.newbig.web.controller.auth.dto.LoginResponse;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -18,14 +20,15 @@ public class LoginService {
         this.jwtService = jwtService;
     }
 
-    public String login(LoginRequest data) {
-        if (data.getEmail().isBlank() || data.getPassword().isBlank()) {
-            throw new IllegalArgumentException("Login e senha não podem ser vazios");
+    public LoginResponse login(LoginRequest data) {
+        if (data == null || data.getEmail() == null || data.getEmail().isBlank()
+                || data.getPassword() == null || data.getPassword().isBlank()) {
+            throw new BadCredentialsException("Credenciais inválidas");
         }
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.getEmail(), data.getPassword());
         var authentication = authenticationManager.authenticate(usernamePassword);
-        var usuario = (Employee) authentication.getPrincipal();
+        var usuario = (EmployeeUserDetails) authentication.getPrincipal();
 
-        return jwtService.gerarToken(usuario);
+        return new LoginResponse(jwtService.gerarToken(usuario), "Bearer", jwtService.getExpirationSeconds());
     }
 }

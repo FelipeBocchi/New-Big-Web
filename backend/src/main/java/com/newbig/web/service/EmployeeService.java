@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -37,6 +38,10 @@ public class EmployeeService {
 
         Employee employee = new Employee();
         updateFields(employee, request);
+
+        if (employee.getCreateAt() == null) {
+            employee.setCreateAt(LocalDateTime.now());
+        }
 
         Employee saved = repository.save(employee);
         log.info("Funcionário criado com sucesso. id={}", saved.getId());
