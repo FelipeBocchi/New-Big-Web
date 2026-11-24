@@ -262,3 +262,163 @@ html, body {
     border: 1px solid var(--border-color);
    
 }
+
+// Controles e superfícies reutilizáveis do New Big.
+:root {
+  --surface-color: #fff;
+  --muted-text-color: #62575a;
+  --focus-color: #78434f;
+  --success-color: #175936;
+  --success-background: #b8edc9;
+  --danger-color: #8f241f;
+  --danger-background: #fee1de;
+  --surface-shadow: 0 3px 12px rgb(153 106 113 / 14%);
+}
+
+.nb-panel {
+  min-width: 0;
+  padding: var(--size-5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  background: var(--surface-color);
+  box-shadow: var(--surface-shadow);
+}
+
+.nb-panel__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-2);
+  padding-bottom: var(--size-3);
+  border-bottom: 1px solid var(--border-color);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2);
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  h2 > i { color: var(--secondary-color); }
+}
+
+.nb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-2);
+}
+
+.nb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-2);
+  min-height: 44px;
+  padding: var(--size-2) var(--size-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--surface-color);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+
+  &:hover:not(:disabled) { border-color: var(--secondary-color); }
+  &:disabled { cursor: not-allowed; opacity: 0.55; }
+  &--primary { border-color: var(--primary-color); background: var(--primary-color); }
+  &--success { border-color: var(--success-background); background: var(--success-background); color: var(--success-color); }
+  &--danger { border-color: var(--danger-background); background: var(--danger-background); color: var(--danger-color); }
+}
+
+.nb-field {
+  display: grid;
+  align-content: start;
+  gap: var(--size-1);
+  min-width: 0;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  label { font-weight: 600; }
+  input, select {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--size-2) var(--size-3);
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-color);
+    color: var(--text-color);
+    font: inherit;
+  }
+}
+
+.nb-field-error { color: var(--danger-color); }
+
+.nb-hint, .nb-empty {
+  margin: 0;
+  color: var(--muted-text-color);
+  font-size: 0.875rem;
+}
+.nb-empty { padding: var(--size-6) 0; }
+
+.nb-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px var(--size-3);
+  border-radius: var(--radius-full);
+  background: var(--border-color);
+  color: var(--focus-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  &--success { background: var(--success-background); color: var(--success-color); }
+  &--danger { background: var(--danger-background); color: var(--danger-color); }
+}
+
+.nb-notice {
+  margin: 0;
+  padding: var(--size-3) var(--size-4);
+  border-radius: var(--radius-md);
+  background: var(--success-background);
+  color: var(--success-color);
+  font-size: 0.875rem;
+  &--error { background: var(--danger-background); color: var(--danger-color); }
+}
+
+.nb-table-wrap { min-width: 0; overflow-x: auto; }
+
+.nb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  th, td {
+    padding: var(--size-3) var(--size-2);
+    border-bottom: 1px solid var(--border-color);
+    text-align: start;
+    vertical-align: middle;
+  }
+  th { color: var(--text-color); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .nb-table__amount { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+}
+
+.nb-link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--focus-color);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:is(.nb-button, .nb-link-button, .nb-field input, .nb-field select, .login-form input, .sidebar a):focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 3px;
+}

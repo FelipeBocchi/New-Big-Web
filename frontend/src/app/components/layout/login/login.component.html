@@ -1,47 +1,31 @@
 <div class="container-centralizado">
   <div class="retangulo">
-
-    <!-- Logo -->
     <div class="logo-wrapper">
       <img src="assets/logo_newbig.png" alt="New Big Sorvetes e Açaí" class="logo">
     </div>
-
-    <!-- Formulário de Login -->
-    <form class="login-form" (ngSubmit)="onSubmit()">
-
-      <!-- Campo 1: Usuário -->
-      <div class="input-group">
-        <label for="user">User: CPF ou E-mail</label>
-        <input 
-          type="text" 
-          id="user" 
-          name="email" 
-          [(ngModel)]="email" 
-          class="input-field" 
-          autocomplete="off"
-        >
+    <form class="login-form" aria-label="Entrar no New Big" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="login-field">
+        <label for="user">E-mail</label>
+        <input type="email" id="user" formControlName="email" autocomplete="username" required
+          [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid">
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <small class="nb-field-error">Informe um e-mail válido.</small>
+        }
       </div>
-
-      <!-- Campo 2: Senha -->
-      <div class="input-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
-          [(ngModel)]="password" 
-          class="input-field"
-        >
+      <div class="login-field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" formControlName="password" autocomplete="current-password" required
+          [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid">
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small class="nb-field-error">Informe sua senha.</small>
+        }
       </div>
-
-    
-
-      <!-- Botão Entrar -->
-      <div class="submit-wrapper">
-        <button type="submit" class="btn-entrar">Entrar</button>
-      </div>
-
+      @if (error()) {
+        <p class="nb-notice nb-notice--error" role="alert">{{ error() }}</p>
+      }
+      <button type="submit" class="nb-button nb-button--primary" [disabled]="submitting()">
+        {{ submitting() ? 'Entrando…' : 'Entrar' }}
+      </button>
     </form>
-
   </div>
 </div>
