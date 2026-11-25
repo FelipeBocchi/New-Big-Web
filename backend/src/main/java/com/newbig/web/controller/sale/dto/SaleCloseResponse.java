@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 public record SaleCloseResponse(
         Long id,
+        Long cashId,
         BigDecimal subtotal,
         BigDecimal discount,
         BigDecimal total,
@@ -19,6 +20,7 @@ public record SaleCloseResponse(
     public static SaleCloseResponse de(Sale sale) {
         return new SaleCloseResponse(
                 sale.getId(),
+                sale.getCashier().getId(),
                 sale.getSubtotal(),
                 sale.getDiscount(),
                 sale.getTotal(),

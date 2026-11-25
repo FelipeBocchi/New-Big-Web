@@ -1,11 +1,13 @@
 package com.newbig.web.controller.sale;
 
+import com.newbig.web.config.infra.security.EmployeeUserDetails;
 import com.newbig.web.controller.sale.dto.*;
 import com.newbig.web.entity.Sale;
 import com.newbig.web.service.SaleService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,6 +62,20 @@ public class SaleController {
                 .toList();
 
         return ResponseEntity.ok(saleList);
+    }
+
+    @GetMapping("/{id}")
+    public SaleDetailsResponse findById(@PathVariable Long id) {
+        return service.findDetails(id);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public SaleCloseResponse cancel(
+            @PathVariable Long id,
+            @Valid @RequestBody SaleCancelRequest request,
+            @AuthenticationPrincipal EmployeeUserDetails employee
+    ) {
+        return SaleCloseResponse.de(service.cancel(id, request.cashId(), employee.getEmployeeId()));
     }
 
     // ADD_ITEMS

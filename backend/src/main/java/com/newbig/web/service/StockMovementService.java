@@ -16,6 +16,8 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -126,5 +128,37 @@ public class StockMovementService {
         }
 
         return movements;
+    }
+
+    @Transactional
+    public void reverseSale(Sale sale, Long employeeId) {
+        Map<Long, Integer> quantities = sale.getStockMovements().stream()
+                .filter(movement -> movement.getType() == MovementType.SALE_EXIT)
+                .collect(Collectors.toMap(movement -> movement.getBatch().getId(), StockMovement::getQuantity, Integer::sum));
+
+        if (quantities.isEmpty()) {
+            return;
+        }
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado"));
+        List<Batch> batches = batchRepository.findByIdsForUpdate(quantities.keySet());
+        if (batches.size() != quantities.size()) {
+            throw new ConflictException("Não foi possível localizar todos os lotes da venda");
+        }
+
+        for (Batch batch : batches) {
+            int quantity = quantities.get(batch.getId());
+            batch.setQuantity(batch.getQuantity() + quantity);
+            batch.setQuantityIsZero(false);
+            StockMovement reversal = new StockMovement();
+            reversal.setObservation("Estorno da venda #" + sale.getId());
+            reversal.setType(MovementType.ADJUSTMENT);
+            reversal.setQuantity(quantity);
+            reversal.setMovementDate(LocalDateTime.now(clock));
+            reversal.setBatch(batch);
+            reversal.setEmployee(employee);
+            sale.addStockMovement(reversal);
+            repository.save(reversal);
+        }
     }
 }

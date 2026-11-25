@@ -3,6 +3,7 @@ package com.newbig.web.service;
 import com.newbig.web.controller.batch.dto.BatchConsumption;
 import com.newbig.web.controller.sale.dto.SaleAddRequest;
 import com.newbig.web.controller.sale.dto.SaleCloseRequest;
+import com.newbig.web.controller.sale.dto.SaleDetailsResponse;
 import com.newbig.web.controller.sale.dto.SaleOpenRequest;
 import com.newbig.web.entity.*;
 import com.newbig.web.enums.SaleStatus;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -141,4 +143,27 @@ public class SaleService {
         return saved;
     }
 
+    @Transactional
+    public SaleDetailsResponse findDetails(Long id) {
+        return repository.findDetailsById(id)
+                .map(SaleDetailsResponse::de)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada com o ID: " + id));
+    }
+
+    @Transactional
+    public Sale cancel(Long id, Long cashId, Long employeeId) {
+        Sale sale = repository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada com o ID: " + id));
+
+        if (!Objects.equals(sale.getCashier().getId(), cashId)) {
+            throw new ConflictException("A venda pertence a outro caixa");
+        }
+        if (sale.getStatus() != SaleStatus.OPENED) {
+            throw new ConflictException("Somente vendas abertas podem ser canceladas");
+        }
+
+        movementService.reverseSale(sale, employeeId);
+        sale.setStatus(SaleStatus.CANCELLED);
+        return repository.save(sale);
+    }
 }

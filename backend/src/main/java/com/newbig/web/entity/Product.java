@@ -47,9 +47,11 @@ public class Product {
     @Column(name = "cost_price", nullable = false)
     private BigDecimal costPrice;
 
+    @Column()
     @Enumerated(EnumType.STRING)
     private UnitType unitType;
 
+    @Column()
     @Enumerated(EnumType.STRING)
     private ProductType productType;
 

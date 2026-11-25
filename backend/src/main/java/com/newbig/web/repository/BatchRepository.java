@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 public interface BatchRepository extends JpaRepository<Batch, Long> {
@@ -32,5 +33,7 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
             @Param("today") LocalDate today
     );
 
-    //  AND b.expirationAt > :today
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from Batch b where b.id in :ids order by b.expirationAt asc, b.id asc")
+    List<Batch> findByIdsForUpdate(@Param("ids") Collection<Long> ids);
 }
