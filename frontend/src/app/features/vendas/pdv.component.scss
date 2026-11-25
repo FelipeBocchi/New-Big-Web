@@ -5,81 +5,43 @@
   margin-inline: auto;
 }
 
-.pdv-heading,
-.pdv-sales__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--size-2);
-}
-
 .pdv-heading h1 {
   margin: 0;
   font-size: clamp(1.375rem, 2.2vw, 1.75rem);
   font-weight: 600;
 }
 
-.pdv-grid {
+.pdv-columns {
   display: grid;
   grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
   align-items: start;
   gap: var(--size-5);
 }
 
-.cash-column, .pdv-sales, .cash-form, .new-sale-form, .sale-editor {
+.sale-column,
+.new-sale-form {
   display: grid;
   min-width: 0;
   gap: var(--size-3);
 }
 
-.cash-panel { min-height: 376px; }
-.history { min-height: 454px; }
-.cash-actions { justify-content: space-between; }
-.pdv-sales__actions > button { margin-inline-start: auto; }
-.new-sale-form { margin-top: var(--size-3); }
-
-.cash-summary, .sale-totals {
-  margin: 0;
-  div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--size-2);
-    padding-block: var(--size-3);
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.875rem;
-  }
-  dt { font-weight: 400; color: var(--muted-text-color); }
-  dd { margin: 0; text-align: end; overflow-wrap: anywhere; }
-}
-
-.sale-totals { width: min(100%, 260px); margin-inline-start: auto; }
-
-.item-form, .checkout-form {
-  display: grid;
+.sale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--size-2);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: end;
+
+  > button {
+    margin-inline-start: auto;
+  }
 }
-.item-form > .nb-field:first-child { grid-column: 1 / -1; }
-.item-form > button { justify-self: start; }
-.checkout-form { grid-template-columns: minmax(0, 1fr) auto; }
 
-.history__table {
-  min-width: 490px;
-
-  .nb-link-button { display: block; margin-bottom: var(--size-1); white-space: nowrap; }
+.new-sale-form {
+  margin-top: var(--size-3);
 }
 
 @media (max-width: 1050px) {
-  .pdv-grid { grid-template-columns: 1fr; }
-  .cash-panel, .history { min-height: auto; }
-}
-
-@media (max-width: 550px) {
-  .history__table { min-width: 0; }
-  .history__person { display: none; }
-  .checkout-form { grid-template-columns: 1fr; }
-  .checkout-form > button { justify-self: start; }
+  .pdv-columns {
+    grid-template-columns: 1fr;
+  }
 }

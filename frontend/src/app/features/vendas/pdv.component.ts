@@ -1,260 +1,335 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, finalize, forkJoin, of, switchMap, tap } from 'rxjs';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { catchError, EMPTY, finalize, forkJoin, Observable, of, retry, switchMap, tap } from 'rxjs';
 import { apiErrorMessage } from '../../core/services/api';
 import { ClienteService } from '../../services/clientes/cliente.service';
 import { CashApiService, CashSession } from '../caixa/cash-api.service';
+import { CashAction, CashDialogComponent } from '../caixa/cash-dialog/cash-dialog.component';
+import { CashPanelComponent } from '../caixa/cash-panel/cash-panel.component';
 import { SaleApiService } from './sale-api.service';
-import { PAYMENT_LABELS, PaymentMethod, SALE_STATUS_LABELS, SaleDetails, SaleProduct, SaleSummary } from './sale.types';
+import { SaleEditorComponent } from './sale-editor/sale-editor.component';
+import { SalesHistoryComponent } from './sale-history/sale-history.component';
+import { PaymentMethod, SaleDetails, SaleItemInput, SaleProduct, SaleSummary } from './sale.types';
 
-type CashAction = 'open' | 'close';
+interface PdvSnapshot {
+  cashes: CashSession[];
+  sales: SaleSummary[];
+  sale: SaleDetails | null;
+}
+
+interface Notice {
+  message: string;
+  error: boolean;
+}
 
 @Component({
   selector: 'app-pdv',
-  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule],
+  imports: [
+    CashDialogComponent,
+    CashPanelComponent,
+    ReactiveFormsModule,
+    SaleEditorComponent,
+    SalesHistoryComponent,
+  ],
   templateUrl: './pdv.component.html',
   styleUrl: './pdv.component.scss',
 })
 export class PdvComponent implements OnInit {
   private readonly cashApi = inject(CashApiService);
   private readonly saleApi = inject(SaleApiService);
-  private readonly clienteService = inject(ClienteService);
+  private readonly customerService = inject(ClienteService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly cashes = signal<CashSession[]>([]);
-  readonly sales = signal<SaleSummary[]>([]);
-  readonly cashId = signal<number | null>(null);
+  private readonly cashes = signal<CashSession[]>([]);
+  private readonly sales = signal<SaleSummary[]>([]);
+  private readonly selectedCashId = signal<number | null>(null);
+  private readonly needsSync = signal(false);
+
   readonly loaded = signal(false);
-  readonly pending = signal(false);
-  readonly needsRefresh = signal(false);
-  readonly disabled = computed(() => !this.loaded() || this.pending() || this.needsRefresh());
-  readonly feedback = signal<{ message: string; error: boolean } | null>(null);
+  readonly busy = signal(false);
+  readonly notice = signal<Notice | null>(null);
   readonly cashAction = signal<CashAction | null>(null);
+
   readonly customers = signal<{ id: number; name: string }[]>([]);
   readonly products = signal<SaleProduct[]>([]);
   readonly creatingSale = signal(false);
-  readonly detail = signal<SaleDetails | null>(null);
-  readonly confirmingCancel = signal(false);
+  readonly selectedSale = signal<SaleDetails | null>(null);
 
-  readonly paymentLabels = PAYMENT_LABELS;
-  readonly statusLabels = SALE_STATUS_LABELS;
-  readonly paymentMethods = Object.entries(PAYMENT_LABELS) as [PaymentMethod, string][];
+  readonly saleForm = new FormGroup({
+    customerId: new FormControl<number | null>(null),
+  });
+
+  readonly disabled = computed(() => !this.loaded() || this.busy() || this.needsSync());
+
+  readonly cashError = computed(() => {
+    const notice = this.notice();
+    return notice?.error ? notice.message : '';
+  });
+
   readonly openCashes = computed(() => this.cashes().filter(cash => cash.status === 'OPEN'));
+
   readonly activeCash = computed(() => {
-    const cashes = this.openCashes();
-    return cashes.find(cash => cash.id === this.cashId()) ?? cashes[0] ?? null;
+    const open = this.openCashes();
+    return open.find(cash => cash.id === this.selectedCashId()) ?? open.at(0) ?? null;
   });
-  readonly displayedCash = computed(() => this.activeCash() ?? this.cashes()[0] ?? null);
-  readonly pendingSales = computed(() => this.sales().filter(sale =>
-    sale.status === 'OPENED' && sale.cashId === this.activeCash()?.id,
-  ));
+
+  readonly displayedCash = computed(() => this.activeCash() ?? this.cashes().at(0) ?? null);
+
+  readonly openSales = computed(() => {
+    const cashId = this.activeCash()?.id;
+    return this.sales().filter(sale => sale.status === 'OPENED' && sale.cashId === cashId);
+  });
+
   readonly recentSales = computed(() => {
-    const pending = new Set(this.pendingSales().map(sale => sale.id));
-    return this.sales().filter((sale, index) => index < 12 || pending.has(sale.id));
+    const openIds = new Set(this.openSales().map(sale => sale.id));
+    return this.sales().filter((sale, index) => index < 12 || openIds.has(sale.id));
   });
-  readonly canEdit = computed(() => {
-    const sale = this.detail();
+
+  readonly canEditSale = computed(() => {
+    const sale = this.selectedSale();
     return sale?.status === 'OPENED' && this.openCashes().some(cash => cash.id === sale.cashId);
   });
 
-  readonly cashForm = new FormGroup({ amount: new FormControl<number | null>(null, Validators.required) });
-  readonly saleForm = new FormGroup({ customerId: new FormControl<number | null>(null) });
-  readonly itemForm = new FormGroup({
-    barcode: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/\S/)] }),
-    quantity: new FormControl<number | null>(1, [
-      Validators.required, Validators.min(1), Validators.max(2_147_483_647), Validators.pattern(/^\d+$/),
-    ]),
-    discountUnit: new FormControl<number | null>(null, Validators.min(0)),
-  });
-  readonly paymentForm = new FormGroup({
-    method: new FormControl<PaymentMethod | null>(null, Validators.required),
-  });
-
   ngOnInit(): void {
-    this.reload();
+    this.run(
+      this.fetchSnapshot(),
+      snapshot => this.applySnapshot(snapshot),
+      'Não foi possível carregar o caixa e as vendas.',
+    );
+
     this.saleApi.products().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: products => this.products.set(products),
       error: () => this.products.set([]),
     });
   }
 
-  reload(): void {
-    const selected = this.detail();
-    this.run(forkJoin({
-      cashes: this.cashApi.list(),
-      sales: this.saleApi.list(),
-      detail: selected ? this.saleApi.get(selected.id) : of(null),
-    }), result => {
-      this.cashes.set(result.cashes.sort((a, b) => b.id - a.id));
-      this.sales.set(result.sales.sort((a, b) => b.id - a.id));
-      this.detail.set(result.detail);
-      this.needsRefresh.set(false);
-      this.loaded.set(true);
-      this.cashAction.set(null);
-      if (!this.activeCash()) this.creatingSale.set(false);
-    }, 'Não foi possível carregar o caixa e as vendas.');
-  }
-
   selectCash(id: number): void {
-    this.cashId.set(id);
-    this.cashAction.set(null);
-    this.creatingSale.set(false);
-    this.detail.set(null);
+    this.selectedCashId.set(id);
+    this.showHistory();
   }
 
-  startCash(action: CashAction): void {
-    this.cashForm.reset();
+  showCashDialog(action: CashAction): void {
+    this.notice.set(null);
     this.cashAction.set(action);
   }
 
-  submitCash(): void {
+  confirmCash(amount: number): void {
     if (this.disabled()) return;
-    const amount = this.cashForm.controls.amount.value;
+
     const action = this.cashAction();
     const cash = this.activeCash();
 
-    if (amount === null || amount < (action === 'open' ? 0.01 : 0) ||
-        amount > 9_999_999_999.99 || Number(amount.toFixed(2)) !== amount) {
-      this.feedback.set({ message: 'Informe um valor em reais e centavos.', error: true });
-      return;
-    }
     if (action === 'open' && !cash) {
       this.run(this.cashApi.open(amount), opened => {
         this.updateCash(opened);
-        this.cashId.set(opened.id);
+        this.selectedCashId.set(opened.id);
         this.cashAction.set(null);
-        this.success('Caixa aberto.');
+        this.showSuccess('Caixa aberto.');
       }, 'Não foi possível abrir o caixa.', true);
-    } else if (action === 'close' && cash && !this.pendingSales().length) {
+    } else if (action === 'close' && cash && !this.openSales().length) {
       this.run(this.cashApi.close(cash.id, amount), closed => {
         this.updateCash(closed);
         this.cashAction.set(null);
-        this.creatingSale.set(false);
-        this.success('Caixa fechado.');
+        this.showHistory();
+        this.showSuccess('Caixa fechado.');
       }, 'Não foi possível fechar o caixa.', true);
     }
   }
 
   startSale(): void {
     if (this.disabled() || !this.activeCash()) return;
+
     this.saleForm.reset();
-    this.detail.set(null);
+    this.notice.set(null);
+    this.selectedSale.set(null);
     this.creatingSale.set(true);
-    this.clienteService.listAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: customers => this.customers.set(customers.filter(customer => customer.active)
-        .map(customer => ({ id: customer.id, name: String(customer.name) }))
-        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))),
-      error: () => this.feedback.set({ message: 'A lista de clientes está indisponível. Você pode abrir a venda sem cliente.', error: true }),
+
+    this.customerService.listAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: customers => {
+        const activeCustomers = customers
+          .filter(customer => customer.active)
+          .map(customer => ({ id: customer.id, name: String(customer.name) }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+        this.customers.set(activeCustomers);
+      },
+      error: () => {
+        this.customers.set([]);
+        if (this.creatingSale()) {
+          this.notice.set({
+            message: 'A lista de clientes está indisponível. Você pode abrir a venda sem cliente.',
+            error: true,
+          });
+        }
+      },
     });
   }
 
   openSale(): void {
     const cash = this.activeCash();
     if (!cash || this.disabled()) return;
-    this.run(this.saleApi.open(cash.id, this.saleForm.controls.customerId.value), sale => {
+
+    const customerId = this.saleForm.controls.customerId.value;
+
+    this.run(this.saleApi.open(cash.id, customerId), sale => {
       this.updateSale(sale);
-      this.showSale(sale);
-      this.cashAction.set(null);
-      this.success('Venda aberta.');
+      this.selectedSale.set(sale);
+      this.creatingSale.set(false);
+      this.showSuccess('Venda aberta.');
     }, 'Não foi possível abrir a venda.', true);
   }
 
   selectSale(id: number): void {
     this.run(this.saleApi.get(id), sale => {
-      this.showSale(sale);
+      this.selectedSale.set(sale);
+
       if (sale.status === 'OPENED' && this.openCashes().some(cash => cash.id === sale.cashId)) {
-        this.cashId.set(sale.cashId);
-        this.cashAction.set(null);
+        this.selectedCashId.set(sale.cashId);
       }
     }, 'Não foi possível consultar a venda.');
   }
 
-  private showSale(sale: SaleDetails): void {
-    this.resetEditorForms();
+  showHistory(): void {
     this.creatingSale.set(false);
-    this.detail.set(sale);
+    this.selectedSale.set(null);
   }
 
-  private resetEditorForms(): void {
-    this.itemForm.reset({ quantity: 1 });
-    this.paymentForm.reset();
-    this.confirmingCancel.set(false);
-  }
+  addItem(item: SaleItemInput): void {
+    const sale = this.selectedSale();
+    if (!sale || this.disabled() || !this.canEditSale()) return;
 
-  addItem(): void {
-    this.itemForm.markAllAsTouched();
-    const sale = this.detail();
-    const { barcode, quantity, discountUnit } = this.itemForm.getRawValue();
-    if (!sale || this.disabled() || !this.canEdit() || this.itemForm.invalid || quantity === null) return;
-    this.run(this.saleApi.addItem(sale, { barcode: barcode.trim(), quantity, discountUnit: discountUnit ?? 0 }).pipe(
-      tap(() => this.needsRefresh.set(true)),
+    const request = this.saleApi.addItem(sale, item).pipe(
+      tap(() => this.needsSync.set(true)),
       switchMap(() => this.saleApi.get(sale.id)),
-    ), updated => {
-      this.updateSale(updated);
-      this.detail.set(updated);
-      this.itemForm.reset({ quantity: 1 });
-      this.needsRefresh.set(false);
-      this.success('Item adicionado.');
+    );
+
+    this.run(request, updatedSale => {
+      this.updateSale(updatedSale);
+      this.selectedSale.set(updatedSale);
+      this.needsSync.set(false);
+      this.showSuccess('Item adicionado.');
     }, 'Não foi possível atualizar os itens da venda.', true);
   }
 
-  finalizeSale(): void {
-    this.paymentForm.markAllAsTouched();
-    const sale = this.detail();
-    const method = this.paymentForm.controls.method.value;
-    if (!sale || !method || this.disabled() || !this.canEdit() || sale.total <= 0) return;
-    this.run(this.saleApi.close(sale, method).pipe(
-      tap(closed => {
-        this.updateSale(closed);
-        this.detail.set({ ...closed, items: sale.items });
-        this.needsRefresh.set(true);
+  finishSale(payment: PaymentMethod): void {
+    const sale = this.selectedSale();
+    if (!sale || this.disabled() || !this.canEditSale() || sale.total <= 0) return;
+
+    const request = this.saleApi.close(sale, payment).pipe(
+      tap(closedSale => {
+        this.updateSale(closedSale);
+        this.showHistory();
+        this.needsSync.set(true);
       }),
-      switchMap(closed => this.cashApi.get(closed.cashId)),
-    ), cash => {
+      switchMap(closedSale => this.cashApi.get(closedSale.cashId)),
+    );
+
+    this.run(request, cash => {
       this.updateCash(cash);
-      this.needsRefresh.set(false);
-      this.success('Venda finalizada.');
+      this.needsSync.set(false);
+      this.showSuccess('Venda finalizada.');
     }, 'Não foi possível atualizar o pagamento e o caixa.', true);
   }
 
   cancelSale(): void {
-    const sale = this.detail();
+    const sale = this.selectedSale();
     if (!sale || this.disabled() || sale.status !== 'OPENED') return;
-    this.run(this.saleApi.cancel(sale), cancelled => {
-      this.updateSale(cancelled);
-      this.detail.set({ ...cancelled, items: sale.items });
-      this.confirmingCancel.set(false);
-      this.success('Venda cancelada.');
+
+    this.run(this.saleApi.cancel(sale), cancelledSale => {
+      this.updateSale(cancelledSale);
+      this.showHistory();
+      this.showSuccess('Venda cancelada.');
     }, 'Não foi possível cancelar a venda.', true);
   }
 
-  private run<T>(request: Observable<T>, next: (value: T) => void, fallback: string, writes = false): void {
-    if (this.pending()) return;
-    this.pending.set(true);
-    this.feedback.set(null);
-    request.pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false))).subscribe({
-      next,
-      error: (error: unknown) => {
-        if (writes && error instanceof HttpErrorResponse && (error.status === 0 || error.status >= 500)) {
-          this.needsRefresh.set(true);
-        }
-        this.feedback.set({ message: apiErrorMessage(error, fallback), error: true });
-      },
+  private fetchSnapshot(): Observable<PdvSnapshot> {
+    const selected = this.selectedSale();
+
+    return forkJoin({
+      cashes: this.cashApi.list(),
+      sales: this.saleApi.list(),
+      sale: selected ? this.saleApi.get(selected.id) : of(null),
     });
   }
 
+  private applySnapshot(snapshot: PdvSnapshot): void {
+    this.cashes.set(snapshot.cashes.sort((a, b) => b.id - a.id));
+    this.sales.set(snapshot.sales.sort((a, b) => b.id - a.id));
+    this.selectedSale.set(snapshot.sale);
+    this.needsSync.set(false);
+    this.loaded.set(true);
+  }
+
+  private run<T>(
+    request: Observable<T>,
+    applyResult: (data: T) => void,
+    errorMessage: string,
+    isWrite = false,
+  ): void {
+    if (this.busy()) return;
+
+    this.busy.set(true);
+    this.notice.set(null);
+
+    request.pipe(
+      tap(applyResult),
+      catchError((error: unknown) => this.handleRequestError(error, errorMessage, isWrite)),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.busy.set(false)),
+    ).subscribe();
+  }
+
+  private handleRequestError(error: unknown, message: string, isWrite: boolean): Observable<unknown> {
+    const responseUncertain = error instanceof HttpErrorResponse &&
+      (error.status === 0 || error.status >= 500);
+
+    if (isWrite && (responseUncertain || this.needsSync())) {
+      return this.syncAfterWrite();
+    }
+
+    this.notice.set({ message: apiErrorMessage(error, message), error: true });
+    return EMPTY;
+  }
+
+  private syncAfterWrite(): Observable<PdvSnapshot> {
+    this.needsSync.set(true);
+    this.cashAction.set(null);
+    this.creatingSale.set(false);
+    this.showSuccess('Conferindo o resultado da operação no servidor…');
+
+    return this.fetchSnapshot().pipe(
+      retry({ count: 2, delay: 500 }),
+      tap(snapshot => {
+        this.applySnapshot(snapshot);
+        this.showSuccess('Dados atualizados. Confira o resultado antes de repetir a operação.');
+      }),
+      catchError(() => {
+        this.notice.set({
+          message: 'Não foi possível confirmar a operação. Reabra o PDV para conferir o resultado.',
+          error: true,
+        });
+        return EMPTY;
+      }),
+    );
+  }
+
   private updateSale(sale: SaleSummary): void {
-    this.sales.update(sales => [sale, ...sales.filter(previous => previous.id !== sale.id)].sort((a, b) => b.id - a.id));
+    this.sales.update(sales => {
+      const others = sales.filter(previous => previous.id !== sale.id);
+      return [sale, ...others].sort((a, b) => b.id - a.id);
+    });
   }
 
   private updateCash(cash: CashSession): void {
-    this.cashes.update(cashes => [cash, ...cashes.filter(previous => previous.id !== cash.id)].sort((a, b) => b.id - a.id));
+    this.cashes.update(cashes => {
+      const others = cashes.filter(previous => previous.id !== cash.id);
+      return [cash, ...others].sort((a, b) => b.id - a.id);
+    });
   }
 
-  private success(message: string): void {
-    this.feedback.set({ message, error: false });
+  private showSuccess(message: string): void {
+    this.notice.set({ message, error: false });
   }
 }

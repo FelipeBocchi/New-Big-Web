@@ -1,0 +1,170 @@
+@let currentSale = sale();
+
+<section class="nb-panel sale-editor" aria-labelledby="sale-title">
+  <header class="nb-panel__heading">
+    <div class="nb-actions">
+      <h2 id="sale-title">Venda #{{ currentSale.id }}</h2>
+      <span
+        class="nb-badge"
+        [class.nb-badge--success]="currentSale.status === 'COMPLETED'"
+        [class.nb-badge--danger]="currentSale.status === 'CANCELLED'"
+      >
+        {{ statusLabels[currentSale.status] }}
+      </span>
+    </div>
+    <button type="button" class="nb-button" [disabled]="disabled()" (click)="back.emit()">
+      Voltar ao histórico
+    </button>
+  </header>
+
+  <p class="nb-hint">{{ currentSale.employeeName }} · {{ currentSale.customerName || 'Sem cliente' }}</p>
+
+  @if (canEdit()) {
+    <form class="item-form" [formGroup]="itemForm" (ngSubmit)="addItem()" novalidate>
+      <div class="nb-field">
+        <label for="sale-barcode">Código do produto</label>
+        <input
+          id="sale-barcode"
+          formControlName="barcode"
+          list="sale-products"
+          autocomplete="off"
+          [readonly]="disabled()"
+          required
+        >
+
+        <datalist id="sale-products">
+          @for (product of products(); track product.barcode) {
+            <option [value]="product.barcode" [label]="product.name"></option>
+          }
+        </datalist>
+      </div>
+
+      <div class="nb-field">
+        <label for="sale-quantity">Quantidade</label>
+        <input
+          id="sale-quantity"
+          type="number"
+          formControlName="quantity"
+          min="1"
+          step="1"
+          [readonly]="disabled()"
+          required
+        >
+      </div>
+
+      <div class="nb-field">
+        <label for="sale-discount">Desconto (R$)</label>
+        <input
+          id="sale-discount"
+          type="number"
+          formControlName="discountUnit"
+          min="0"
+          step="0.01"
+          [readonly]="disabled()"
+        >
+      </div>
+
+      <button type="submit" class="nb-button nb-button--primary" [disabled]="disabled()">
+        Adicionar item
+      </button>
+    </form>
+    @if (itemForm.touched && itemForm.invalid) {
+      <p class="nb-field-error">Confira o código, a quantidade inteira e o desconto.</p>
+    }
+  } @else if (currentSale.status === 'OPENED') {
+    <p class="nb-hint">O caixa desta venda está fechado. Cancele a venda para devolver os itens ao estoque.</p>
+  }
+
+  @if (currentSale.items.length) {
+    <div class="nb-table-wrap" tabindex="0" role="region" aria-label="Itens da venda">
+      <table class="nb-table">
+        <thead>
+          <tr>
+            <th scope="col">Produto</th>
+            <th scope="col" class="nb-table__amount">Qtd.</th>
+            <th scope="col" class="nb-table__amount">Preço un.</th>
+            <th scope="col" class="nb-table__amount">Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of currentSale.items; track item.id) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td class="nb-table__amount">{{ item.quantity }}</td>
+              <td class="nb-table__amount">{{ item.unitPrice | currency:'BRL' }}</td>
+              <td class="nb-table__amount">{{ item.total | currency:'BRL' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="nb-empty">Nenhum item nesta venda.</p>
+  }
+
+  <dl class="sale-totals">
+    <div>
+      <dt>Subtotal</dt>
+      <dd>{{ currentSale.subtotal | currency:'BRL' }}</dd>
+    </div>
+
+    <div>
+      <dt>Desconto</dt>
+      <dd>{{ currentSale.discount | currency:'BRL' }}</dd>
+    </div>
+
+    <div>
+      <dt>Total</dt>
+      <dd><strong>{{ currentSale.total | currency:'BRL' }}</strong></dd>
+    </div>
+  </dl>
+
+  @if (canEdit()) {
+    <form class="payment-form" [formGroup]="paymentForm" (ngSubmit)="finishSale()" novalidate>
+      <div class="nb-field">
+        <label for="sale-payment">Forma de pagamento</label>
+        <select id="sale-payment" formControlName="method" required>
+          <option [ngValue]="null">Selecione</option>
+          @for (method of paymentMethods; track method[0]) {
+            <option [ngValue]="method[0]">{{ method[1] }}</option>
+          }
+        </select>
+        @if (paymentForm.touched && paymentForm.invalid) {
+          <small class="nb-field-error">Selecione uma forma de pagamento.</small>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="nb-button nb-button--success"
+        [disabled]="disabled() || currentSale.total <= 0"
+      >
+        Finalizar venda
+      </button>
+    </form>
+  } @else if (currentSale.paymentMethod) {
+    <p class="nb-hint">Pagamento em {{ paymentLabels[currentSale.paymentMethod] }}.</p>
+  }
+
+  @if (currentSale.status === 'OPENED') {
+    <div class="nb-actions">
+      @if (confirmingCancel()) {
+        <p class="nb-hint">Os itens serão devolvidos aos lotes de origem.</p>
+        <button type="button" class="nb-button nb-button--danger" [disabled]="disabled()"
+          (click)="cancelRequested.emit()">
+          Confirmar cancelamento
+        </button>
+        <button type="button" class="nb-button" [disabled]="disabled()"
+          (click)="confirmingCancel.set(false)">
+          Manter venda
+        </button>
+      } @else {
+        <button type="button" class="nb-button nb-button--danger" [disabled]="disabled()"
+          (click)="confirmingCancel.set(true)">
+          Cancelar venda
+        </button>
+      }
+    </div>
+  }
+</section>

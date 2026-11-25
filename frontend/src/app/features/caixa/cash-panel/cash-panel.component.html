@@ -1,0 +1,108 @@
+@let session = cash();
+
+<section class="nb-panel cash-panel" aria-labelledby="cash-title">
+  <header class="nb-panel__heading">
+    <h2 id="cash-title">
+      <i class="fa-solid fa-dollar-sign" aria-hidden="true"></i>
+      Caixa
+    </h2>
+
+    @if (loaded()) {
+      <span class="nb-badge" [class.nb-badge--success]="isOpen()">
+        {{ isOpen() ? 'Aberto' : 'Fechado' }}
+      </span>
+    }
+  </header>
+
+  @if (openCashes().length > 1) {
+    <div class="nb-field">
+      <label for="cash-session">Caixa em uso</label>
+
+      <select
+        #cashSelect
+        id="cash-session"
+        [value]="session?.id"
+        [disabled]="disabled()"
+        (change)="cashSelected.emit(+cashSelect.value)"
+      >
+        @for (cash of openCashes(); track cash.id) {
+          <option [value]="cash.id">#{{ cash.id }} · {{ cash.openedBy }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  @if (session) {
+    <dl class="cash-summary">
+      <div>
+        <dt>Abertura</dt>
+        <dd>{{ session.openedAt | date:"dd/MM/yyyy 'às' HH:mm" }}</dd>
+      </div>
+
+      <div>
+        <dt>Aberto por</dt>
+        <dd>{{ session.openedBy }}</dd>
+      </div>
+
+      <div>
+        <dt>Valor inicial</dt>
+        <dd>{{ session.openingAmount | currency:'BRL' }}</dd>
+      </div>
+
+      <div>
+        <dt>Total em vendas</dt>
+        <dd>{{ session.total | currency:'BRL' }}</dd>
+      </div>
+
+      @if (isOpen()) {
+        <div>
+          <dt>Dinheiro esperado</dt>
+          <dd><strong>{{ session.expectedClosingAmount | currency:'BRL' }}</strong></dd>
+        </div>
+      } @else {
+        <div>
+          <dt>Encerramento</dt>
+          <dd>{{ session.closedAt | date:"dd/MM/yyyy 'às' HH:mm" }}</dd>
+        </div>
+
+        <div>
+          <dt>Fechado por</dt>
+          <dd>{{ session.closedBy }}</dd>
+        </div>
+
+        <div>
+          <dt>Valor contado</dt>
+          <dd>{{ session.closingAmount | currency:'BRL' }}</dd>
+        </div>
+      }
+    </dl>
+  } @else {
+    <p class="nb-empty">
+      {{ loaded() ? 'Nenhum caixa registrado.' : 'Aguardando os dados do caixa.' }}
+    </p>
+  }
+</section>
+
+<div class="nb-actions cash-actions">
+  <button
+    type="button"
+    class="nb-button nb-button--success"
+    [disabled]="disabled() || isOpen()"
+    (click)="openRequested.emit()"
+  >
+    Abrir caixa <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i>
+  </button>
+
+  <button
+    type="button"
+    class="nb-button nb-button--danger"
+    [disabled]="disabled() || !isOpen() || hasOpenSales()"
+    (click)="closeRequested.emit()"
+  >
+    Fechar caixa <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i>
+  </button>
+</div>
+
+@if (isOpen() && hasOpenSales()) {
+  <p class="nb-hint">Finalize ou cancele as vendas em andamento para fechar o caixa.</p>
+}

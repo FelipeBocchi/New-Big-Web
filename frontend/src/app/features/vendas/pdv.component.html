@@ -1,274 +1,108 @@
+@let sale = selectedSale();
+
 <div class="pdv">
   <header class="pdv-heading">
     <h1>Caixa / PDV</h1>
-    <button type="button" class="nb-button" [disabled]="pending()" (click)="reload()">
-      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Atualizar
-    </button>
   </header>
 
-  @if (feedback(); as notice) {
-    <p class="nb-notice" [class.nb-notice--error]="notice.error"
-      [attr.role]="notice.error ? 'alert' : 'status'">{{ notice.message }}</p>
+  @if (!cashAction() && notice(); as feedback) {
+    <p
+      class="nb-notice"
+      [class.nb-notice--error]="feedback.error"
+      [attr.role]="feedback.error ? 'alert' : 'status'"
+    >
+      {{ feedback.message }}
+    </p>
   }
-  @if (needsRefresh()) {
-    <p class="nb-hint" role="status">Atualize o PDV e confira o resultado antes de repetir a operação.</p>
-  }
 
-  <div class="pdv-grid" [attr.aria-busy]="pending()">
-    <div class="cash-column">
-      <section class="nb-panel cash-panel" aria-labelledby="cash-title">
-        <header class="nb-panel__heading">
-          <h2 id="cash-title"><i class="fa-solid fa-dollar-sign" aria-hidden="true"></i> Caixa</h2>
-          @if (loaded()) {
-            <span class="nb-badge" [class.nb-badge--success]="activeCash()">
-              {{ activeCash() ? 'Aberto' : 'Fechado' }}
-            </span>
-          }
-        </header>
+  <div class="pdv-columns" [attr.aria-busy]="busy()">
+    <app-cash-panel
+      [cash]="displayedCash()"
+      [openCashes]="openCashes()"
+      [loaded]="loaded()"
+      [disabled]="disabled()"
+      [hasOpenSales]="openSales().length > 0"
+      (cashSelected)="selectCash($event)"
+      (openRequested)="showCashDialog('open')"
+      (closeRequested)="showCashDialog('close')"
+    />
 
-        @if (openCashes().length > 1) {
-          <div class="nb-field">
-            <label for="cash-session">Caixa em uso</label>
-            <select id="cash-session" #cashSession [value]="activeCash()?.id" [disabled]="disabled()"
-              (change)="selectCash(+cashSession.value)">
-              @for (cash of openCashes(); track cash.id) {
-                <option [value]="cash.id">#{{ cash.id }} · {{ cash.openedBy }}</option>
-              }
-            </select>
-          </div>
-        }
-
-        @if (displayedCash(); as cash) {
-          <dl class="cash-summary">
-            <div><dt>Abertura</dt><dd>{{ cash.openedAt | date:"dd/MM/yyyy 'às' HH:mm" }}</dd></div>
-            <div><dt>Aberto por</dt><dd>{{ cash.openedBy }}</dd></div>
-            <div><dt>Valor inicial</dt><dd>{{ cash.openingAmount | currency:'BRL' }}</dd></div>
-            <div><dt>Total em vendas</dt><dd>{{ cash.total | currency:'BRL' }}</dd></div>
-            @if (cash.status === 'OPEN') {
-              <div><dt>Dinheiro esperado</dt><dd><strong>{{ cash.expectedClosingAmount | currency:'BRL' }}</strong></dd></div>
-            } @else {
-              <div><dt>Encerramento</dt><dd>{{ cash.closedAt | date:"dd/MM/yyyy 'às' HH:mm" }}</dd></div>
-              <div><dt>Fechado por</dt><dd>{{ cash.closedBy }}</dd></div>
-              <div><dt>Valor contado</dt><dd>{{ cash.closingAmount | currency:'BRL' }}</dd></div>
-            }
-          </dl>
-        } @else {
-          <p class="nb-empty">{{ loaded() ? 'Nenhum caixa registrado.' : 'Aguardando os dados do caixa.' }}</p>
-        }
-      </section>
-
-      <div class="nb-actions cash-actions">
-        <button type="button" class="nb-button nb-button--success" [disabled]="disabled() || activeCash()"
-          (click)="startCash('open')">Abrir caixa <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i></button>
-        <button type="button" class="nb-button nb-button--danger"
-          [disabled]="disabled() || !activeCash() || pendingSales().length > 0"
-          (click)="startCash('close')">Fechar caixa <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i></button>
-      </div>
-      @if (activeCash() && pendingSales().length) {
-        <p class="nb-hint">Finalize ou cancele as vendas em andamento para fechar o caixa.</p>
-      }
-
-      @if (cashAction(); as mode) {
-        <form class="nb-panel cash-form" [formGroup]="cashForm" (ngSubmit)="submitCash()" novalidate>
-          <div class="nb-field">
-            <label for="cash-amount">{{ mode === 'open' ? 'Valor inicial (R$)' : 'Dinheiro contado (R$)' }}</label>
-            <input id="cash-amount" type="number" inputmode="decimal" step="0.01"
-              [min]="mode === 'open' ? 0.01 : 0" formControlName="amount" [readonly]="disabled()" required>
-          </div>
-          <div class="nb-actions">
-            <button type="submit" class="nb-button" [class.nb-button--success]="mode === 'open'"
-              [class.nb-button--danger]="mode === 'close'" [disabled]="disabled()">
-              {{ mode === 'open' ? 'Confirmar abertura' : 'Confirmar fechamento' }}
-            </button>
-            <button type="button" class="nb-button" [disabled]="pending()" (click)="cashAction.set(null)">Voltar</button>
-          </div>
-        </form>
-      }
-    </div>
-
-    <div class="pdv-sales">
-      <div class="pdv-sales__actions">
-        @if (loaded() && !activeCash()) {
-          <p class="nb-hint">Abra o caixa para iniciar uma venda.</p>
-        }
-        <button type="button" class="nb-button nb-button--primary"
-          [disabled]="disabled() || !activeCash() || creatingSale()" (click)="startSale()">
-          Nova venda <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i>
-        </button>
-      </div>
-
+    <div class="sale-column">
       @if (creatingSale()) {
         <section class="nb-panel" aria-labelledby="new-sale-title">
-          <header class="nb-panel__heading"><h2 id="new-sale-title">Nova venda</h2></header>
+          <header class="nb-panel__heading">
+            <h2 id="new-sale-title">Nova venda</h2>
+          </header>
+
           <form class="new-sale-form" [formGroup]="saleForm" (ngSubmit)="openSale()">
             <div class="nb-field">
               <label for="sale-customer">Cliente (opcional)</label>
+
               <select id="sale-customer" formControlName="customerId">
                 <option [ngValue]="null">Sem cliente</option>
+
                 @for (customer of customers(); track customer.id) {
                   <option [ngValue]="customer.id">{{ customer.name }}</option>
                 }
               </select>
             </div>
+
             <div class="nb-actions">
-              <button type="submit" class="nb-button nb-button--primary" [disabled]="disabled()">Abrir venda</button>
-              <button type="button" class="nb-button" [disabled]="pending()" (click)="creatingSale.set(false)">Voltar</button>
+              <button type="submit" class="nb-button nb-button--primary" [disabled]="disabled()">
+                Abrir venda
+              </button>
+
+              <button type="button" class="nb-button" [disabled]="busy()" (click)="showHistory()">
+                Voltar ao histórico
+              </button>
             </div>
           </form>
         </section>
+      } @else if (sale) {
+        <app-sale-editor
+          [sale]="sale"
+          [products]="products()"
+          [canEdit]="canEditSale()"
+          [disabled]="disabled()"
+          (back)="showHistory()"
+          (itemAdded)="addItem($event)"
+          (paymentConfirmed)="finishSale($event)"
+          (cancelRequested)="cancelSale()"
+        />
+      } @else {
+        <div class="sale-actions">
+          @if (loaded() && !activeCash()) {
+            <p class="nb-hint">Abra o caixa para iniciar uma venda.</p>
+          }
+
+          <button
+            type="button"
+            class="nb-button nb-button--primary"
+            [disabled]="disabled() || !activeCash()"
+            (click)="startSale()"
+          >
+            Nova venda <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <app-sales-history
+          [sales]="recentSales()"
+          [loaded]="loaded()"
+          [busy]="busy()"
+          (saleSelected)="selectSale($event)"
+        />
       }
-
-      @if (detail(); as sale) {
-        <section class="nb-panel sale-editor" aria-labelledby="sale-title">
-          <header class="nb-panel__heading">
-            <div class="nb-actions">
-              <h2 id="sale-title">Venda #{{ sale.id }}</h2>
-              <span class="nb-badge" [class.nb-badge--success]="sale.status === 'COMPLETED'"
-                [class.nb-badge--danger]="sale.status === 'CANCELLED'">{{ statusLabels[sale.status] }}</span>
-            </div>
-            <button type="button" class="nb-button" [disabled]="pending()" (click)="detail.set(null)">Voltar</button>
-          </header>
-
-          <p class="nb-hint">{{ sale.employeeName }} · {{ sale.customerName || 'Sem cliente' }}</p>
-
-          @if (canEdit()) {
-            <form class="item-form" [formGroup]="itemForm" (ngSubmit)="addItem()" novalidate>
-              <div class="nb-field">
-                <label for="sale-barcode">Código do produto</label>
-                <input id="sale-barcode" formControlName="barcode" list="sale-products" autocomplete="off"
-                  [readonly]="disabled()" required>
-                <datalist id="sale-products">
-                  @for (product of products(); track product.barcode) {
-                    <option [value]="product.barcode" [label]="product.name"></option>
-                  }
-                </datalist>
-              </div>
-              <div class="nb-field">
-                <label for="sale-quantity">Quantidade</label>
-                <input id="sale-quantity" type="number" formControlName="quantity" min="1" step="1"
-                  [readonly]="disabled()" required>
-              </div>
-              <div class="nb-field">
-                <label for="sale-discount">Desconto (R$)</label>
-                <input id="sale-discount" type="number" formControlName="discountUnit" min="0" step="0.01"
-                  [readonly]="disabled()">
-              </div>
-              <button type="submit" class="nb-button nb-button--primary" [disabled]="disabled()">Adicionar item</button>
-            </form>
-            @if (itemForm.touched && itemForm.invalid) {
-              <p class="nb-field-error">Confira o código, a quantidade inteira e o desconto.</p>
-            }
-          } @else if (sale.status === 'OPENED') {
-            <p class="nb-hint">O caixa desta venda está fechado. Cancele a venda para devolver os itens ao estoque.</p>
-          }
-
-          @if (sale.items.length) {
-            <div class="nb-table-wrap" tabindex="0" role="region" aria-label="Itens da venda">
-              <table class="nb-table">
-                <thead><tr>
-                  <th scope="col">Produto</th>
-                  <th scope="col" class="nb-table__amount">Qtd.</th>
-                  <th scope="col" class="nb-table__amount">Preço un.</th>
-                  <th scope="col" class="nb-table__amount">Subtotal</th>
-                </tr></thead>
-                <tbody>
-                  @for (item of sale.items; track item.id) {
-                    <tr>
-                      <td>{{ item.productName }}</td>
-                      <td class="nb-table__amount">{{ item.quantity }}</td>
-                      <td class="nb-table__amount">{{ item.unitPrice | currency:'BRL' }}</td>
-                      <td class="nb-table__amount">{{ item.total | currency:'BRL' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <p class="nb-empty">Nenhum item nesta venda.</p>
-          }
-
-          <dl class="sale-totals">
-            <div><dt>Subtotal</dt><dd>{{ sale.subtotal | currency:'BRL' }}</dd></div>
-            <div><dt>Desconto</dt><dd>{{ sale.discount | currency:'BRL' }}</dd></div>
-            <div><dt>Total</dt><dd><strong>{{ sale.total | currency:'BRL' }}</strong></dd></div>
-          </dl>
-
-          @if (canEdit()) {
-            <form class="checkout-form" [formGroup]="paymentForm" (ngSubmit)="finalizeSale()" novalidate>
-              <div class="nb-field">
-                <label for="sale-payment">Forma de pagamento</label>
-                <select id="sale-payment" formControlName="method" required>
-                  <option [ngValue]="null">Selecione</option>
-                  @for (method of paymentMethods; track method[0]) {
-                    <option [ngValue]="method[0]">{{ method[1] }}</option>
-                  }
-                </select>
-                @if (paymentForm.touched && paymentForm.invalid) {
-                  <small class="nb-field-error">Selecione uma forma de pagamento.</small>
-                }
-              </div>
-              <button type="submit" class="nb-button nb-button--success"
-                [disabled]="disabled() || sale.total <= 0">Finalizar venda</button>
-            </form>
-          } @else if (sale.paymentMethod) {
-            <p class="nb-hint">Pagamento em {{ paymentLabels[sale.paymentMethod] }}.</p>
-          }
-
-          @if (sale.status === 'OPENED') {
-            <div class="nb-actions">
-              @if (confirmingCancel()) {
-                <p class="nb-hint">Os itens serão devolvidos aos lotes de origem.</p>
-                <button type="button" class="nb-button nb-button--danger" [disabled]="disabled()"
-                  (click)="cancelSale()">Confirmar cancelamento</button>
-                <button type="button" class="nb-button" [disabled]="pending()"
-                  (click)="confirmingCancel.set(false)">Manter venda</button>
-              } @else {
-                <button type="button" class="nb-button nb-button--danger" [disabled]="disabled()"
-                  (click)="confirmingCancel.set(true)">Cancelar venda</button>
-              }
-            </div>
-          }
-        </section>
-      }
-
-      <section class="nb-panel history" aria-labelledby="sales-title">
-        <header class="nb-panel__heading">
-          <h2 id="sales-title"><i class="fa-solid fa-receipt" aria-hidden="true"></i> Últimas vendas</h2>
-        </header>
-        @if (!loaded()) {
-          <p class="nb-empty">{{ pending() ? 'Carregando vendas…' : 'Atualize para consultar as vendas.' }}</p>
-        } @else if (!recentSales().length) {
-          <p class="nb-empty">Nenhuma venda registrada.</p>
-        } @else {
-          <div class="nb-table-wrap" tabindex="0" role="region" aria-label="Últimas vendas">
-            <table class="nb-table history__table">
-              <thead><tr>
-                <th scope="col">Venda e status</th>
-                <th scope="col">Pagamento</th>
-                <th scope="col" class="history__person">Funcionário</th>
-                <th scope="col" class="history__person">Cliente</th>
-                <th scope="col" class="nb-table__amount">Total</th>
-              </tr></thead>
-              <tbody>
-                @for (sale of recentSales(); track sale.id) {
-                  <tr>
-                    <td>
-                      <button type="button" class="nb-link-button" [disabled]="pending()"
-                        [attr.aria-expanded]="detail()?.id === sale.id" (click)="selectSale(sale.id)">Venda #{{ sale.id }}</button>
-                      <span class="nb-badge" [class.nb-badge--success]="sale.status === 'COMPLETED'"
-                        [class.nb-badge--danger]="sale.status === 'CANCELLED'">{{ statusLabels[sale.status] }}</span>
-                    </td>
-                    <td>{{ sale.paymentMethod ? paymentLabels[sale.paymentMethod] : '—' }}</td>
-                    <td class="history__person">{{ sale.employeeName }}</td>
-                    <td class="history__person">{{ sale.customerName || '—' }}</td>
-                    <td class="nb-table__amount">{{ sale.total | currency:'BRL' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </section>
     </div>
   </div>
 </div>
+
+@if (cashAction(); as action) {
+  <app-cash-dialog
+    [action]="action"
+    [cash]="activeCash()"
+    [saving]="busy()"
+    [error]="cashError()"
+    (confirmed)="confirmCash($event)"
+    (dismissed)="cashAction.set(null)"
+  />
+}

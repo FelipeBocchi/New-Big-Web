@@ -1,0 +1,60 @@
+<section class="nb-panel sales-history" aria-labelledby="sales-title">
+  <header class="nb-panel__heading">
+    <h2 id="sales-title">
+      <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+      Últimas vendas
+    </h2>
+  </header>
+
+  @if (!loaded()) {
+    <p class="nb-empty">
+      {{ busy() ? 'Carregando vendas…' : 'Reabra o PDV para consultar as vendas.' }}
+    </p>
+  } @else if (!sales().length) {
+    <p class="nb-empty">Nenhuma venda registrada.</p>
+  } @else {
+    <div class="nb-table-wrap" tabindex="0" role="region" aria-label="Últimas vendas">
+      <table class="nb-table sales-history__table">
+        <thead>
+          <tr>
+            <th scope="col">Venda e status</th>
+            <th scope="col">Pagamento</th>
+            <th scope="col" class="sales-history__person">Funcionário</th>
+            <th scope="col" class="sales-history__person">Cliente</th>
+            <th scope="col" class="nb-table__amount">Total</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (sale of sales(); track sale.id) {
+            <tr>
+              <td>
+                <button
+                  type="button"
+                  class="nb-link-button"
+                  [disabled]="busy()"
+                  (click)="saleSelected.emit(sale.id)"
+                >
+                  Venda #{{ sale.id }}
+                </button>
+
+                <span
+                  class="nb-badge"
+                  [class.nb-badge--success]="sale.status === 'COMPLETED'"
+                  [class.nb-badge--danger]="sale.status === 'CANCELLED'"
+                >
+                  {{ statusLabels[sale.status] }}
+                </span>
+              </td>
+
+              <td>{{ sale.paymentMethod ? paymentLabels[sale.paymentMethod] : '—' }}</td>
+              <td class="sales-history__person">{{ sale.employeeName }}</td>
+              <td class="sales-history__person">{{ sale.customerName || '—' }}</td>
+              <td class="nb-table__amount">{{ sale.total | currency:'BRL' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
