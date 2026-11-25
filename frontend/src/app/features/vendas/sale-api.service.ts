@@ -4,6 +4,12 @@ import { map } from 'rxjs';
 import { API_BASE_URL } from '../../core/services/api';
 import { PaymentMethod, SaleDetails, SaleItemInput, SaleProduct, SaleSummary } from './sale.types';
 
+interface OpenSaleRequest {
+  cashId: number;
+  employeeId: number;
+  customerId: number | null;
+}
+
 type OpenSaleResponse = Omit<SaleSummary, 'cashId' | 'paymentMethod'>;
 
 @Injectable({ providedIn: 'root' })
@@ -25,9 +31,9 @@ export class SaleApiService {
     );
   }
 
-  open(cashId: number, customerId: number | null) {
-    return this.http.post<OpenSaleResponse>(this.url, { cashId, customerId }).pipe(
-      map((sale): SaleDetails => ({ ...sale, cashId, paymentMethod: null, items: [] })),
+  open(request: OpenSaleRequest) {
+    return this.http.post<OpenSaleResponse>(this.url, request).pipe(
+      map((sale): SaleDetails => ({ ...sale, cashId: request.cashId, paymentMethod: null, items: [] })),
     );
   }
 

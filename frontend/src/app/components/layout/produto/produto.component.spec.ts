@@ -2,6 +2,7 @@ import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuComponent } from '../menu/menu.component';
+import { RouterOutlet } from '../../../../../node_modules/@angular/router/router_module.d-Bx9ArA6K';
 
 export interface Produto {
   id: number;
@@ -15,7 +16,7 @@ export interface Produto {
 @Component({
   selector: 'app-produto',
   standalone: true,
-  imports: [CommonModule, FormsModule, MenuComponent],
+  imports: [CommonModule, FormsModule, MenuComponent, RouterOutlet],
   templateUrl: './produto.component.html',
   styleUrl: './produto.component.scss'
 })

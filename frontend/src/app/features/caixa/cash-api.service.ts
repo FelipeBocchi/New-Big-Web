@@ -16,6 +16,16 @@ export interface CashSession {
   closedBy: string | null;
 }
 
+interface OpenCashRequest {
+  openingAmount: number;
+  employeeId: number;
+}
+
+interface CloseCashRequest {
+  closingAmount: number;
+  employeeId: number;
+}
+
 interface OpenCashResponse {
   id: number;
   status: 'OPEN';
@@ -38,8 +48,8 @@ export class CashApiService {
     return this.http.get<CashSession>(`${this.url}/${id}`);
   }
 
-  open(openingAmount: number) {
-    return this.http.post<OpenCashResponse>(this.url, { openingAmount }).pipe(
+  open(request: OpenCashRequest) {
+    return this.http.post<OpenCashResponse>(this.url, request).pipe(
       map(({ id, status, openingAmount, total, openedAt, nameOfEmployee }): CashSession => ({
         id,
         status,
@@ -55,7 +65,7 @@ export class CashApiService {
     );
   }
 
-  close(id: number, closingAmount: number) {
-    return this.http.patch<CashSession>(`${this.url}/${id}`, { closingAmount });
+  close(id: number, request: CloseCashRequest) {
+    return this.http.patch<CashSession>(`${this.url}/${id}`, request);
   }
 }

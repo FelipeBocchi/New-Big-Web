@@ -40,6 +40,22 @@ export class AuthService {
     return this.session && this.session.expiresAt > Date.now() ? this.session.token : null;
   }
 
+  employeeId(): number | null {
+    const token = this.accessToken();
+    const payload = token?.split('.')[1];
+    if (!payload) return null;
+
+    try {
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+      const { id }: { id?: unknown } = JSON.parse(atob(padded));
+
+      return typeof id === 'number' && Number.isSafeInteger(id) && id > 0 ? id : null;
+    } catch {
+      return null;
+    }
+  }
+
   logout(): void {
     this.session = null;
     sessionStorage.removeItem(SESSION_KEY);

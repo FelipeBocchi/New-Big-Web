@@ -3,6 +3,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { catchError, EMPTY, finalize, forkJoin, Observable, of, retry, switchMap, tap } from 'rxjs';
+import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/services/api';
 import { ClienteService } from '../../services/clientes/cliente.service';
 import { CashApiService, CashSession } from '../caixa/cash-api.service';
@@ -37,6 +38,7 @@ interface Notice {
   styleUrl: './pdv.component.scss',
 })
 export class PdvComponent implements OnInit {
+  private readonly auth = inject(AuthService);
   private readonly cashApi = inject(CashApiService);
   private readonly saleApi = inject(SaleApiService);
   private readonly customerService = inject(ClienteService);
@@ -118,18 +120,21 @@ export class PdvComponent implements OnInit {
   confirmCash(amount: number): void {
     if (this.disabled()) return;
 
+    const employeeId = this.requireEmployeeId();
+    if (employeeId === null) return;
+
     const action = this.cashAction();
     const cash = this.activeCash();
 
     if (action === 'open' && !cash) {
-      this.run(this.cashApi.open(amount), opened => {
+      this.run(this.cashApi.open({ openingAmount: amount, employeeId }), opened => {
         this.updateCash(opened);
         this.selectedCashId.set(opened.id);
         this.cashAction.set(null);
         this.showSuccess('Caixa aberto.');
       }, 'Não foi possível abrir o caixa.', true);
     } else if (action === 'close' && cash && !this.openSales().length) {
-      this.run(this.cashApi.close(cash.id, amount), closed => {
+      this.run(this.cashApi.close(cash.id, { closingAmount: amount, employeeId }), closed => {
         this.updateCash(closed);
         this.cashAction.set(null);
         this.showHistory();
@@ -171,9 +176,12 @@ export class PdvComponent implements OnInit {
     const cash = this.activeCash();
     if (!cash || this.disabled()) return;
 
+    const employeeId = this.requireEmployeeId();
+    if (employeeId === null) return;
+
     const customerId = this.saleForm.controls.customerId.value;
 
-    this.run(this.saleApi.open(cash.id, customerId), sale => {
+    this.run(this.saleApi.open({ cashId: cash.id, employeeId, customerId }), sale => {
       this.updateSale(sale);
       this.selectedSale.set(sale);
       this.creatingSale.set(false);
@@ -242,6 +250,19 @@ export class PdvComponent implements OnInit {
       this.showHistory();
       this.showSuccess('Venda cancelada.');
     }, 'Não foi possível cancelar a venda.', true);
+  }
+
+  private requireEmployeeId(): number | null {
+    const employeeId = this.auth.employeeId();
+
+    if (employeeId === null) {
+      this.notice.set({
+        message: 'O funcionário da sessão não foi identificado. Entre novamente para continuar.',
+        error: true,
+      });
+    }
+
+    return employeeId;
   }
 
   private fetchSnapshot(): Observable<PdvSnapshot> {

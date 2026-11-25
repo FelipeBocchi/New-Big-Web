@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 350">
+  <defs>
+    <path id="cone" d="M4 19h24L16 36 4 19Zm2-4a6 6 0 0 1 3-7 8 8 0 0 1 15 1 5 5 0 0 1 2 6H6Z"/>
+  </defs>
+  <g fill="#ffe8e2" opacity=".76">
+    <use href="#cone" transform="translate(155 -9) rotate(35 16 18)"/>
+    <use href="#cone" transform="translate(38 31) rotate(40 16 18) scale(.85)"/>
+    <use href="#cone" transform="translate(181 70) rotate(38 16 18)"/>
+    <use href="#cone" transform="translate(13 103) rotate(44 16 18)"/>
+    <use href="#cone" transform="translate(134 144) rotate(31 16 18)"/>
+    <use href="#cone" transform="translate(-6 225) rotate(39 16 18)"/>
+    <use href="#cone" transform="translate(219 258) rotate(29 16 18)"/>
+    <use href="#cone" transform="translate(63 297) rotate(40 16 18)"/>
+    <use href="#cone" transform="translate(119 313) rotate(45 16 18) scale(.86)"/>
+  </g>
+</svg>
