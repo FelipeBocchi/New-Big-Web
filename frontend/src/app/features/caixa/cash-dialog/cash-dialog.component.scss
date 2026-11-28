@@ -1,0 +1,21 @@
+.cash-dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: var(--size-6);
+  color: var(--text-color);
+  overflow: auto;
+
+  &::backdrop {
+    background: rgb(15 15 15 / 44%);
+  }
+}
+
+form {
+  display: grid;
+  gap: var(--size-4);
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+}

@@ -1,0 +1,108 @@
+@let sale = selectedSale();
+
+<div class="pdv">
+  <header class="pdv-heading">
+    <h1>Caixa / PDV</h1>
+  </header>
+
+  @if (!cashAction() && notice(); as feedback) {
+    <p
+      class="nb-notice"
+      [class.nb-notice--error]="feedback.error"
+      [attr.role]="feedback.error ? 'alert' : 'status'"
+    >
+      {{ feedback.message }}
+    </p>
+  }
+
+  <div class="pdv-columns" [attr.aria-busy]="busy()">
+    <app-cash-panel
+      [cash]="displayedCash()"
+      [openCashes]="openCashes()"
+      [loaded]="loaded()"
+      [disabled]="disabled()"
+      [hasOpenSales]="openSales().length > 0"
+      (cashSelected)="selectCash($event)"
+      (openRequested)="showCashDialog('open')"
+      (closeRequested)="showCashDialog('close')"
+    />
+
+    <div class="sale-column">
+      @if (creatingSale()) {
+        <section class="nb-panel" aria-labelledby="new-sale-title">
+          <header class="nb-panel__heading">
+            <h2 id="new-sale-title">Nova venda</h2>
+          </header>
+
+          <form class="new-sale-form" [formGroup]="saleForm" (ngSubmit)="openSale()">
+            <div class="nb-field">
+              <label for="sale-customer">Cliente (opcional)</label>
+
+              <select id="sale-customer" formControlName="customerId">
+                <option [ngValue]="null">Sem cliente</option>
+
+                @for (customer of customers(); track customer.id) {
+                  <option [ngValue]="customer.id">{{ customer.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="nb-actions">
+              <button type="submit" class="nb-button nb-button--primary" [disabled]="disabled()">
+                Abrir venda
+              </button>
+
+              <button type="button" class="nb-button" [disabled]="busy()" (click)="showHistory()">
+                Voltar ao histórico
+              </button>
+            </div>
+          </form>
+        </section>
+      } @else if (sale) {
+        <app-sale-editor
+          [sale]="sale"
+          [products]="products()"
+          [canEdit]="canEditSale()"
+          [disabled]="disabled()"
+          (back)="showHistory()"
+          (itemAdded)="addItem($event)"
+          (paymentConfirmed)="finishSale($event)"
+          (cancelRequested)="cancelSale()"
+        />
+      } @else {
+        <div class="sale-actions">
+          @if (loaded() && !activeCash()) {
+            <p class="nb-hint">Abra o caixa para iniciar uma venda.</p>
+          }
+
+          <button
+            type="button"
+            class="nb-button nb-button--primary"
+            [disabled]="disabled() || !activeCash()"
+            (click)="startSale()"
+          >
+            Nova venda <i class="fa-solid fa-circle-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <app-sales-history
+          [sales]="recentSales()"
+          [loaded]="loaded()"
+          [busy]="busy()"
+          (saleSelected)="selectSale($event)"
+        />
+      }
+    </div>
+  </div>
+</div>
+
+@if (cashAction(); as action) {
+  <app-cash-dialog
+    [action]="action"
+    [cash]="activeCash()"
+    [saving]="busy()"
+    [error]="cashError()"
+    (confirmed)="confirmCash($event)"
+    (dismissed)="cashAction.set(null)"
+  />
+}

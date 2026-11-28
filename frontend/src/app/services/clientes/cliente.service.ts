@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from '../../core/services/api';
 import { Customer } from '../../models/cutomers/customer';
 
 @Injectable({
@@ -10,7 +11,7 @@ export class ClienteService {
 
   http = inject(HttpClient);
 
-  API = "http://localhost:8081/api/customer";
+  API = `${API_BASE_URL}/customer`;
 
   constructor() { }
 

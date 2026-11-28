@@ -1,0 +1,47 @@
+.pdv {
+  display: grid;
+  gap: var(--size-4);
+  max-width: 1472px;
+  margin-inline: auto;
+}
+
+.pdv-heading h1 {
+  margin: 0;
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+  font-weight: 600;
+}
+
+.pdv-columns {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: var(--size-5);
+}
+
+.sale-column,
+.new-sale-form {
+  display: grid;
+  min-width: 0;
+  gap: var(--size-3);
+}
+
+.sale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-2);
+
+  > button {
+    margin-inline-start: auto;
+  }
+}
+
+.new-sale-form {
+  margin-top: var(--size-3);
+}
+
+@media (max-width: 1050px) {
+  .pdv-columns {
+    grid-template-columns: 1fr;
+  }
+}

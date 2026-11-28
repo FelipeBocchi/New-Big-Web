@@ -1,0 +1,44 @@
+:host {
+  display: grid;
+  min-width: 0;
+  gap: var(--size-3);
+}
+
+.cash-panel {
+  min-height: 376px;
+}
+
+.cash-actions {
+  justify-content: space-between;
+}
+
+.cash-summary {
+  margin: 0;
+
+  div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-2);
+    padding-block: var(--size-3);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.875rem;
+  }
+
+  dt {
+    font-weight: 400;
+    color: var(--muted-text-color);
+  }
+
+  dd {
+    margin: 0;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1050px) {
+  .cash-panel {
+    min-height: auto;
+  }
+}

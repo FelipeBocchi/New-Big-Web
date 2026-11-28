@@ -1,0 +1,53 @@
+.sale-editor {
+  display: grid;
+  gap: var(--size-4);
+}
+
+.item-form,
+.payment-form {
+  display: grid;
+  gap: var(--size-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+
+  > button {
+    justify-self: start;
+  }
+}
+
+.item-form > .nb-field:first-child {
+  grid-column: 1 / -1;
+}
+
+.payment-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.sale-totals {
+  width: min(100%, 260px);
+  margin: 0 0 0 auto;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--size-2);
+    padding: var(--size-2) 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  dt {
+    font-weight: 400;
+    color: var(--muted-text-color);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (max-width: 550px) {
+  .payment-form {
+    grid-template-columns: 1fr;
+  }
+}

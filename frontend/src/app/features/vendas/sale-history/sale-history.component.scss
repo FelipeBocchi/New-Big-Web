@@ -1,0 +1,29 @@
+.sales-history {
+  min-height: 454px;
+}
+
+.sales-history__table {
+  min-width: 490px;
+
+  .nb-link-button {
+    display: block;
+    margin-bottom: var(--size-1);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1050px) {
+  .sales-history {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 550px) {
+  .sales-history__table {
+    min-width: 0;
+  }
+
+  .sales-history__person {
+    display: none;
+  }
+}

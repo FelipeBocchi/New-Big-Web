@@ -1,0 +1,62 @@
+@let currentCash = cash();
+@let amount = form.controls.amount;
+@let invalidAmount = amount.touched && amount.invalid;
+
+<dialog #dialog class="cash-dialog nb-panel" aria-labelledby="cash-dialog-title" (cancel)="dismiss($event)">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="nb-panel__heading">
+      <h2 id="cash-dialog-title">
+        <i class="fa-solid fa-cash-register" aria-hidden="true"></i>
+        {{ isOpening() ? 'Abrir caixa' : 'Fechar caixa' }}
+      </h2>
+    </header>
+
+    @if (isOpening()) {
+      <p class="nb-hint">O responsável pela abertura será o funcionário da sessão atual.</p>
+    } @else if (currentCash) {
+      <p class="nb-hint">Dinheiro esperado <strong>{{ currentCash.expectedClosingAmount | currency:'BRL' }}</strong></p>
+    }
+
+    <div class="nb-field">
+      <label for="cash-amount">{{ isOpening() ? 'Valor inicial (R$)' : 'Dinheiro contado (R$)' }}</label>
+      <input
+        id="cash-amount"
+        type="number"
+        inputmode="decimal"
+        formControlName="amount"
+        step="0.01"
+        [min]="isOpening() ? 0.01 : 0"
+        [readonly]="saving()"
+        [attr.aria-invalid]="invalidAmount"
+        [attr.aria-describedby]="invalidAmount ? 'cash-amount-error' : null"
+        required
+        autofocus
+      >
+
+      @if (invalidAmount) {
+        <small id="cash-amount-error" class="nb-field-error">
+          {{ isOpening() ? 'Informe um valor positivo, em reais e centavos.' :
+            'Informe um valor a partir de zero, em reais e centavos.' }}
+        </small>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="nb-notice nb-notice--error" role="alert">{{ error() }}</p>
+    }
+
+    <footer class="nb-actions dialog-actions">
+      <button type="button" class="nb-button" [disabled]="saving()" (click)="dismiss()">
+        Cancelar
+      </button>
+
+      <button type="submit" class="nb-button nb-button--primary" [disabled]="saving()">
+        @if (saving()) {
+          Salvando…
+        } @else {
+          {{ isOpening() ? 'Confirmar abertura' : 'Confirmar fechamento' }}
+        }
+      </button>
+    </footer>
+  </form>
+</dialog>
