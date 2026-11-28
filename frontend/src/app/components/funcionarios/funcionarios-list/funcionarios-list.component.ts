@@ -1,15 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FuncionariosDetailsComponent } from '../funcionarios-details/funcionarios-details.component';
+import { FuncionarioService } from '../../../services/funcionarios/funcionario.service';
+import { Employee } from '../../../models/employees/employee';
+import Swal, { SweetAlertResult } from 'sweetalert2';
 
-interface Funcionario {
-  id: number;
-  nome: string;
-  cargo: string;
-  telefone: string;
-  status: 'Ativo' | 'Inativo';
-}
 
 @Component({
   selector: 'app-funcionarios-list',
@@ -22,152 +18,126 @@ interface Funcionario {
   templateUrl: './funcionarios-list.component.html',
   styleUrl: './funcionarios-list.component.scss'
 })
-export class FuncionariosListComponent {
+export class FuncionariosListComponent implements OnInit {
 
   termoBusca: string = '';
+  funcionarios: Employee[] = [];
+  editFuncionario: Employee = new Employee(0, "", "", "", "", "", "", false, false, new Date(), new Date(), "");
 
-  // Controle do modal
+  funcionarioService = inject(FuncionarioService);
+
   modalAberto: boolean = false;
   modoEdicao: boolean = false;
 
-  funcionarioSelecionado: Funcionario = {
-    id: 0,
-    nome: '',
-    cargo: '',
-    telefone: '',
-    status: 'Ativo'
-  };
-
-  funcionarios: Funcionario[] = [
-    {
-      id: 1,
-      nome: 'João',
-      cargo: 'Gerente',
-      telefone: '(45) 99999-1111',
-      status: 'Ativo'
-    },
-    {
-      id: 2,
-      nome: 'Roberto',
-      cargo: 'Funcionário',
-      telefone: '(45) 99999-2222',
-      status: 'Ativo'
-    },
-    {
-      id: 3,
-      nome: 'Felipe',
-      cargo: 'Funcionário',
-      telefone: '(45) 99999-3333',
-      status: 'Ativo'
-    },
-    {
-      id: 4,
-      nome: 'Gustavo',
-      cargo: 'Funcionário',
-      telefone: '(45) 99999-4444',
-      status: 'Ativo'
-    },
-    {
-      id: 5,
-      nome: 'Luis',
-      cargo: 'Funcionário',
-      telefone: '(45) 99999-5555',
-      status: 'Ativo'
-    },
-    {
-      id: 6,
-      nome: 'Neymar',
-      cargo: 'Funcionário',
-      telefone: '(45) 99999-6666',
-      status: 'Inativo'
-    }
-  ];
-
-  get funcionariosFiltrados(): Funcionario[] {
-
-    if (!this.termoBusca.trim()) {
-      return this.funcionarios;
-    }
-
-    const busca = this.termoBusca.toLowerCase();
-
-    return this.funcionarios.filter(funcionario =>
-      funcionario.nome.toLowerCase().includes(busca)
-    );
+  ngOnInit(): void {
+    this.listAll();
   }
 
-  // Abre o modal para criar
+  listAll(): void {
+    this.funcionarioService.listAll().subscribe({
+      next: (lista) => {
+        this.funcionarios = lista || [];
+        this.verificarStateNavegacao();
+      },
+      error: (error) => {
+        console.error('Erro ao listar funcionarios:', error);
+        Swal.fire('Erro', 'Não foi possível carregar a lista de funcionários.', 'error');
+      }
+    });
+  }
+
+  private verificarStateNavegacao(): void {
+    const funcionarioNovo = history.state?.funcionarioNovo;
+    const funcionarioEditado = history.state?.funcionarioEditado;
+
+    if (funcionarioNovo) {
+      this.funcionarios.push(funcionarioNovo);
+    }
+
+    if (funcionarioEditado) {
+      const index = this.funcionarios.findIndex(x => x.id === funcionarioEditado.id);
+      if (index !== -1) {
+        this.funcionarios[index] = funcionarioEditado;
+      }
+    }
+  }
+
+  alterarStatus(funcionario: Employee): void {
+  const novoStatus = !funcionario.active;
+  const acao = novoStatus ? 'ativar' : 'inativar';
+
+  Swal.fire({
+    title: 'Tem certeza?',
+    text: `Deseja realmente ${acao} este funcionário?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: `Sim, ${acao}!`,
+    cancelButtonText: 'Cancelar'
+  }).then((result: SweetAlertResult) => {
+
+    if (result.isConfirmed) {
+      this.funcionarioService.alterarStatus(
+        funcionario.id,
+        novoStatus
+      ).subscribe({
+        next: () => {
+          Swal.fire(
+            'Sucesso',
+            `Funcionário ${novoStatus ? 'ativado' : 'inativado'} com sucesso!`,
+            'success'
+          );
+
+          this.listAll();
+        },
+        error: (error) => {
+          console.error('Erro ao alterar status:', error);
+          Swal.fire('Erro', 'Não foi possível alterar o status.', 'error');
+        }
+      });
+    }
+  });
+}
+
   novoFuncionario(): void {
-
     this.modoEdicao = false;
-
-    this.funcionarioSelecionado = {
-      id: 0,
-      nome: '',
-      cargo: '',
-      telefone: '',
-      status: 'Ativo'
-    };
-
+    this.editFuncionario = new Employee(0, "", "", "", "", "", "", true, false, new Date(), new Date(), "");
     this.modalAberto = true;
   }
 
-  // Abre o modal para editar
-  editarFuncionario(funcionario: Funcionario): void {
-
+  editarFuncionario(funcionario: Employee): void {
     this.modoEdicao = true;
-
-    this.funcionarioSelecionado = {
-      ...funcionario
-    };
-
+    this.editFuncionario = { ...funcionario};
     this.modalAberto = true;
   }
 
-  // Fecha o modal
   fecharModal(): void {
     this.modalAberto = false;
   }
 
-  // Salva o funcionário
-  salvarFuncionario(funcionario: Funcionario): void {
-
-    if (this.modoEdicao) {
-
-      const indice = this.funcionarios.findIndex(
-        f => f.id === funcionario.id
-      );
-
-      if (indice !== -1) {
-        this.funcionarios[indice] = {
-          ...funcionario
-        };
-      }
-
-    } else {
-
-      const novoId = this.funcionarios.length > 0
-        ? Math.max(...this.funcionarios.map(f => f.id)) + 1
-        : 1;
-
-      this.funcionarios.push({
-        ...funcionario,
-        id: novoId
-      });
-
-    }
-
+  retornoDetails(funcionarioSalvo: Employee): void {
     this.fecharModal();
+    this.listAll();
   }
 
-  // Altera o status
-  alterarStatus(funcionario: Funcionario): void {
+  getCargoLabel(role: String): string {
+  const cargos: Record<string, string> = {
+    ATTENDANT: 'Atendente',
+    CASHIER: 'Caixa',
+    STOCK_CLERK: 'Estoquista',
+    MANAGER: 'Gerente'
+  };
 
-    funcionario.status =
-      funcionario.status === 'Ativo'
-        ? 'Inativo'
-        : 'Ativo';
+  return cargos[String(role)] || String(role);
+}
 
+  get funcionariosFiltrados(): Employee[] {
+    if(!this.funcionarios) return [];
+    if (!this.termoBusca.trim()) return this.funcionarios;
+
+    const busca = this.termoBusca.toLowerCase();
+    return this.funcionarios.filter(funcionario =>
+      funcionario.name?.toLowerCase().includes(busca) ||
+      funcionario.email?.toLowerCase().includes(busca)
+    );
   }
-
 }

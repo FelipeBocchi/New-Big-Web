@@ -86,30 +86,6 @@ export class ClientesListComponent implements OnInit {
     });
   }
 
-  ativarById(id: number): void {
-  Swal.fire({
-    title: 'Ativar cliente?',
-    text: 'Deseja realmente ativar este cliente?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, ativar!',
-    cancelButtonText: 'Cancelar'
-  }).then((result: SweetAlertResult) => {
-    if (result.isConfirmed) {
-      this.clienteService.ativa(id).subscribe({
-        next: () => {
-          Swal.fire('Sucesso', 'Cliente ativado com sucesso.', 'success');
-          this.listAll();
-        },
-        error: (err) => {
-          console.error('Erro ao ativar:', err);
-          Swal.fire('Erro', 'Erro ao ativar cliente.', 'error');
-        }
-      });
-    }
-  });
-}
-
   novoCliente(): void {
     this.modoEdicao = false;
     this.editCliente = new Customer(0, "", "", "", "", true, new Date());
@@ -132,10 +108,9 @@ export class ClientesListComponent implements OnInit {
   }
 
   alterarStatus(cliente: Customer): void {
-    if (cliente.active) {
-    this.inativarById(cliente.id);
-  } else {
-    this.ativarById(cliente.id);
+    if (cliente) {
+      cliente.active = !cliente.active;
+      this.inativarById(cliente.id);
     }
   }
 

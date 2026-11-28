@@ -81,7 +81,7 @@ public class EmployeeController {
     @PatchMapping("/{id}")
     public ResponseEntity<EmployeeResponse> updatePartial(
             @PathVariable Long id,
-            @Valid @RequestBody EmployeeRequest request
+            @RequestBody EmployeeRequest request
     ) {
 
         Employee employee = this.service.updatePartial(request, id);

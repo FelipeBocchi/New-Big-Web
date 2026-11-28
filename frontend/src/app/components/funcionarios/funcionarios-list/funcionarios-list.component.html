@@ -41,15 +41,15 @@
         <tr *ngFor="let funcionario of funcionariosFiltrados">
 
           <td>
-            <div class="funcionario-info">
+            <div class="avatar-info">
 
               <div class="avatar">
-                {{ funcionario.nome.charAt(0) }}
+                {{ funcionario.name ? funcionario.name.charAt(0).toUpperCase() : 'F' }}
               </div>
 
               <div class="nome-container">
                 <span class="nome">
-                  {{ funcionario.nome }}
+                  {{ funcionario.name || 'Sem nome' }}
                 </span>
 
                 <span class="id">
@@ -61,20 +61,19 @@
           </td>
 
           <td>
-            {{ funcionario.cargo }}
+            {{ getCargoLabel(funcionario.role) }}
           </td>
 
           <td>
-            {{ funcionario.telefone }}
+            {{ funcionario.phone }}
           </td>
 
           <td>
             <span
               class="status"
-              [class.ativo]="funcionario.status === 'Ativo'"
-              [class.inativo]="funcionario.status === 'Inativo'"
+              [class.ativo]="funcionario.active" [class.inativo]="!funcionario.active">
             >
-              <i class="fas fa-circle"></i> {{ funcionario.status }}
+              <i class="fas fa-circle"></i> {{ funcionario.active ? 'Ativo' : 'Inativo' }}
             </span>
           </td>
 
@@ -83,10 +82,9 @@
 
               <button
               class="btn-status"
-              [class.ativo]="funcionario.status === 'Ativo'"
-               [class.inativo]="funcionario.status === 'Inativo'"
+              [class.ativo]="funcionario.active" [class.inativo]="!funcionario.active"
               (click)="alterarStatus(funcionario)"
-              [title]="funcionario.status === 'Ativo'
+              [title]="funcionario.active
                 ? 'Desativar funcionário'
                 : 'Ativar funcionário'"
                 >
@@ -105,35 +103,13 @@
           </td>
 
         </tr>
+        <tr *ngIf="funcionariosFiltrados.length === 0">
+          <td colspan="5" style="text-align: center; padding: 20px;">Nenhum funcionário encontrado.</td>
+        </tr>
 
       </tbody>
 
     </table>
-
-  </div>
-
-
-  <div class="paginacao">
-
-    <button class="pagina seta">
-      ‹
-    </button>
-
-    <button class="pagina ativa">
-      1
-    </button>
-
-    <button class="pagina">
-      2
-    </button>
-
-    <button class="pagina">
-      3
-    </button>
-
-    <button class="pagina seta">
-      ›
-    </button>
 
   </div>
 
@@ -142,7 +118,7 @@
 <app-funcionarios-details
   [modalAberto]="modalAberto"
   [modoEdicao]="modoEdicao"
-  [funcionario]="funcionarioSelecionado"
+  [funcionario]="editFuncionario"
   (fechar)="fecharModal()"
-  (salvarFuncionario)="salvarFuncionario($event)">
+  (salvarFuncionario)="retornoDetails($event)">
 </app-funcionarios-details>

@@ -33,8 +33,29 @@
 
         <input
           type="text"
-          [(ngModel)]="funcionario.nome"
+          [(ngModel)]="funcionario.name"
           placeholder="Digite o nome"
+        >
+
+      </div>
+
+      <div class="campo">
+          <label>CPF</label>
+          <input
+            type="text"
+            [(ngModel)]="funcionario.cpf"
+            placeholder="Digite o CPF"
+          >
+        </div>
+
+      <div class="campo">
+
+        <label>E-mail</label>
+
+        <input
+          type="text"
+          [(ngModel)]="funcionario.email"
+          placeholder="Digite o e-mail"
         >
 
       </div>
@@ -46,7 +67,7 @@
 
         <input
           type="text"
-          [(ngModel)]="funcionario.telefone"
+          [(ngModel)]="funcionario.phone"
           placeholder="Digite o telefone"
         >
 
@@ -54,16 +75,50 @@
 
 
       <div class="campo">
+  <label>Cargo</label>
 
-        <label>Cargo</label>
+  <select [(ngModel)]="funcionario.role">
+    <option value="">Selecione um cargo</option>
+    <option value="ATTENDANT">Atendente</option>
+    <option value="CASHIER">Caixa</option>
+    <option value="STOCK_CLERK">Estoquista</option>
+    <option value="MANAGER">Gerente</option>
+  </select>
+</div>
 
-        <input
-          type="text"
-          [(ngModel)]="funcionario.cargo"
-          placeholder="Digite o cargo"
-        >
+        <div class="campo">
+          <label>Usuário</label>
+          <input
+            type="text"
+            [(ngModel)]="funcionario.username"
+            placeholder="Digite o usuário"
+          >
+        </div>
 
-      </div>
+        <div class="campo">
+          <label>Senha</label>
+          <input
+            type="password"
+            [(ngModel)]="funcionario.password"
+            placeholder="Digite a senha"
+          >
+        </div>
+
+        <div class="campo">
+          <label>Data de nascimento</label>
+          <input
+            type="date"
+            [(ngModel)]="funcionario.birthDate"
+          >
+        </div>
+
+        <div class="campo">
+          <label>Administrador</label>
+          <select [(ngModel)]="funcionario.admin">
+            <option [ngValue]="false">Não</option>
+            <option [ngValue]="true">Sim</option>
+          </select>
+        </div>
 
     </div>
 
@@ -79,7 +134,7 @@
 
       <button
         class="btn-salvar"
-        (click)="salvar()"
+        (click)="save()"
       >
         Salvar
       </button>

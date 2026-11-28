@@ -137,7 +137,7 @@ public class EmployeeService {
         employee.setActive(request.getActive());
         employee.setRole(request.getRole());
         employee.setAdmin(request.getAdmin());
-        //employee.setBirthDate(request.getBirthDate().atStartOfDay());
+        employee.setBirthDate(request.getBirthDate());
     }
 
 

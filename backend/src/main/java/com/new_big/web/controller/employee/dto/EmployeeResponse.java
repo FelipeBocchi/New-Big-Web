@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 //  = Não coloquei o atributo admim, se for necessário futuramente
 
 public record EmployeeResponse(
+         Long id,
          String name,
          String cpf,
          String phone,
@@ -26,6 +27,7 @@ public record EmployeeResponse(
 
     public static EmployeeResponse de(Employee employee) {
             return new EmployeeResponse(
+                    employee.getId(),
                     employee.getName(),
                     employee.getCpf(),
                     employee.getPhone(),
